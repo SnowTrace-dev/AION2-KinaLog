@@ -37,7 +37,7 @@
       padding: 20px;
     }
 
-    .app { max-width: 1360px; margin: 0 auto; }
+    .app { max-width: 1640px; margin: 0 auto; }
 
     .topbar {
       border: 1px solid var(--line);
@@ -124,14 +124,14 @@
 
     .card-list::before, .card-list::after {
       content: "";
-      flex: 0 0 max(4px, calc((100% - 1572px) / 2));
+      flex: 0 0 max(4px, calc((100% - 1932px) / 2));
     }
 
     .character-card {
       position: relative;
-      flex: 0 0 254px;
-      max-width: 254px;
-      min-width: 254px;
+      flex: 0 0 312px;
+      max-width: 312px;
+      min-width: 312px;
       scroll-snap-align: center;
       border: 1px solid var(--line);
       background: linear-gradient(180deg, rgba(18,53,46,.96), rgba(8,28,24,.98));
@@ -149,7 +149,7 @@
 
     .nickname {
       text-align: center;
-      font-size: 18px;
+      font-size: 19px;
       font-weight: 900;
       color: var(--gold2);
       line-height: 1.25;
@@ -184,7 +184,7 @@
       justify-content: center;
       align-items: center;
       margin-bottom: 14px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
     }
 
     .energy-pill {
@@ -195,6 +195,7 @@
       color: var(--muted);
       font-size: 11px;
       font-weight: 900;
+      white-space: nowrap;
     }
 
     .energy-pill b { color: var(--text); }
@@ -210,6 +211,12 @@
       cursor: pointer;
     }
 
+    .undo-btn {
+      border-color: rgba(141,227,160,.35);
+      color: #d7ffe0;
+      background: rgba(141,227,160,.10);
+    }
+
     button:hover { filter: brightness(1.12); }
 
     .small-btn {
@@ -218,12 +225,21 @@
     }
 
     .delete-btn {
-      position: absolute;
-      top: 0;
-      right: 0;
       border-color: rgba(255,142,124,.35);
       color: #ffd1ca;
       background: rgba(255,142,124,.12);
+    }
+
+    .card-header .delete-btn {
+      position: absolute;
+      top: 0;
+      right: 0;
+    }
+
+    .delete-task-btn {
+      position: static;
+      align-self: center;
+      white-space: nowrap;
     }
 
     .charge-buttons {
@@ -502,7 +518,7 @@
 
     @media (max-width: 700px) {
       body { padding: 14px; }
-      .character-card { flex: 0 0 88vw; min-width: 88vw; max-width: 88vw; }
+      .character-card { flex: 0 0 92vw; min-width: 92vw; max-width: 92vw; }
       .profit-grid { grid-template-columns: 1fr; }
       .extra-profit-form { grid-template-columns: 1fr; }
       .homework-item, .homework-item.dungeon-task { grid-template-columns: auto 1fr auto; }
@@ -690,6 +706,7 @@
         if (!character.tasks) character.tasks = [];
         if (!character.maxAether) character.maxAether = 840;
         if (typeof character.bonusAether !== "number") character.bonusAether = 0;
+        character.tasks.forEach(task => { if (!task.claimHistory) task.claimHistory = []; });
       });
     }
 
@@ -802,6 +819,17 @@
       save();
     }
 
+    function removeProfit(key, amount) {
+      const week = currentWeek();
+      if (!week.profitCount) week.profitCount = {};
+      week.profit[key] = Math.max(0, (week.profit[key] || 0) - amount);
+      week.profitCount[key] = Math.max(0, (week.profitCount[key] || 0) - 1);
+      if (week.profit[key] <= 0) delete week.profit[key];
+      if (week.profitCount[key] <= 0) delete week.profitCount[key];
+      archiveWeek(state.currentWeekKey);
+      save();
+    }
+
     function enableCardListDrag() {
       const slider = document.getElementById("cardList");
       if (!slider || slider.dataset.dragReady === "1") return;
@@ -907,10 +935,16 @@
       const isDungeon = DUNGEON_TASKS.includes(baseName);
       const item = document.createElement("div");
       item.className = "homework-item" + (isDungeon ? " dungeon-task" : "") + (task.done ? " done" : "");
+      item.title = "클릭하면 숙제를 삭제할 수 있습니다.";
+      item.onclick = (event) => {
+        if (event.target.closest("button, input, select")) return;
+        removeTask(character.id, task.id);
+      };
 
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.checked = task.done;
+      checkbox.onclick = event => event.stopPropagation();
       checkbox.onchange = () => {
         task.done = checkbox.checked;
         save();
@@ -937,6 +971,7 @@
           if (task.selectedDungeon === d.name) option.selected = true;
           select.appendChild(option);
         });
+        select.onclick = event => event.stopPropagation();
         select.onchange = () => {
           task.selectedDungeon = select.value;
           save();
@@ -947,13 +982,43 @@
         item.appendChild(label);
       }
 
+      const actions = document.createElement("div");
+      actions.style.display = "flex";
+      actions.style.gap = "5px";
+      actions.style.flexDirection = "column";
+
       if (isDungeon || SANCTUM_REWARDS[baseName] !== undefined) {
         const reward = document.createElement("button");
         reward.className = "reward-btn small-btn";
         reward.textContent = "보상";
-        reward.onclick = () => claimReward(character.id, task.id);
-        item.appendChild(reward);
+        reward.onclick = (event) => {
+          event.stopPropagation();
+          claimReward(character.id, task.id);
+        };
+        actions.appendChild(reward);
+
+        if ((task.claimHistory || []).length > 0) {
+          const undo = document.createElement("button");
+          undo.className = "undo-btn small-btn";
+          undo.textContent = "취소";
+          undo.onclick = (event) => {
+            event.stopPropagation();
+            undoReward(character.id, task.id);
+          };
+          actions.appendChild(undo);
+        }
+      } else {
+        const deleteTask = document.createElement("button");
+        deleteTask.className = "delete-task-btn small-btn delete-btn";
+        deleteTask.textContent = "삭제";
+        deleteTask.onclick = (event) => {
+          event.stopPropagation();
+          removeTask(character.id, task.id);
+        };
+        actions.appendChild(deleteTask);
       }
+
+      item.appendChild(actions);
 
       return item;
     }
@@ -1021,7 +1086,7 @@
       const baseName = getTaskBaseName(taskName);
       if (character.tasks.some(t => getTaskBaseName(t.name) === baseName)) return;
 
-      const task = { id: uid(), name: taskName, done: false };
+      const task = { id: uid(), name: taskName, done: false, claimHistory: [] };
       if (taskName.startsWith("[원정]")) {
         task.current = 35;
         task.max = 35;
@@ -1038,21 +1103,44 @@
       render();
     }
 
+    function removeTask(characterId, taskId) {
+      const character = currentWeek().characters.find(c => c.id === characterId);
+      const task = character?.tasks.find(t => t.id === taskId);
+      if (!task) return;
+      if ((task.claimHistory || []).length > 0) {
+        alert("보상 기록이 있는 숙제는 먼저 횟수 취소를 해주세요.");
+        return;
+      }
+      if (!confirm(`${getDisplayTaskName(task)} 숙제를 삭제할까요?`)) return;
+      character.tasks = character.tasks.filter(t => t.id !== taskId);
+      save();
+      render();
+    }
+
     function spendAether(character) {
       if ((Number(character.aether || 0) + Number(character.bonusAether || 0)) < 80) {
         alert("오드 에너지가 부족합니다.");
-        return false;
+        return null;
       }
 
       let cost = 80;
+      const spent = { aether: 0, bonusAether: 0 };
       if (character.aether >= cost) {
         character.aether -= cost;
+        spent.aether = cost;
       } else {
+        spent.aether = character.aether;
         cost -= character.aether;
         character.aether = 0;
         character.bonusAether -= cost;
+        spent.bonusAether = cost;
       }
-      return true;
+      return spent;
+    }
+
+    function refundAether(character, spent) {
+      character.aether = Number(character.aether || 0) + Number(spent.aether || 0);
+      character.bonusAether = Number(character.bonusAether || 0) + Number(spent.bonusAether || 0);
     }
 
     function claimReward(characterId, taskId) {
@@ -1061,26 +1149,62 @@
       const task = character.tasks.find(t => t.id === taskId);
       const baseName = getTaskBaseName(task.name);
 
-      if (!spendAether(character)) return;
+      if ((baseName === "[원정]" || baseName === "[초월]") && task.current <= 0) {
+        alert("남은 횟수가 없습니다.");
+        return;
+      }
+
+      const spent = spendAether(character);
+      if (!spent) return;
+      if (!task.claimHistory) task.claimHistory = [];
 
       if (baseName === "[원정]") {
-        if (task.current > 0) task.current -= 1;
+        task.current -= 1;
         if (week.weeklyExpedition < 84) week.weeklyExpedition += 1;
         const dungeon = DUNGEONS["[원정]"].find(d => d.name === task.selectedDungeon) || DUNGEONS["[원정]"][0];
-        addProfit(`원정 ${dungeon.name}`, dungeon.reward);
+        const profitKey = `원정 ${dungeon.name}`;
+        addProfit(profitKey, dungeon.reward);
+        task.claimHistory.push({ type: "expedition", profitKey, reward: dungeon.reward, spent });
       }
 
       if (baseName === "[초월]") {
-        if (task.current > 0) task.current -= 1;
+        task.current -= 1;
         if (week.weeklyTranscend < 56) week.weeklyTranscend += 1;
         const dungeon = DUNGEONS["[초월]"].find(d => d.name === task.selectedDungeon) || DUNGEONS["[초월]"][0];
-        addProfit(`초월 ${dungeon.name}`, dungeon.reward);
+        const profitKey = `초월 ${dungeon.name}`;
+        addProfit(profitKey, dungeon.reward);
+        task.claimHistory.push({ type: "transcend", profitKey, reward: dungeon.reward, spent });
       }
 
       if (SANCTUM_REWARDS[baseName] !== undefined) {
-        addProfit(baseName, SANCTUM_REWARDS[baseName]);
+        const profitKey = baseName;
+        const reward = SANCTUM_REWARDS[baseName];
+        addProfit(profitKey, reward);
+        task.claimHistory.push({ type: "sanctum", profitKey, reward, spent });
       }
 
+      archiveWeek(state.currentWeekKey);
+      save();
+      render();
+    }
+
+    function undoReward(characterId, taskId) {
+      const week = currentWeek();
+      const character = week.characters.find(c => c.id === characterId);
+      const task = character?.tasks.find(t => t.id === taskId);
+      if (!task || !(task.claimHistory || []).length) return;
+
+      const record = task.claimHistory.pop();
+      if (record.type === "expedition") {
+        task.current = Math.min(task.max, task.current + 1);
+        week.weeklyExpedition = Math.max(0, week.weeklyExpedition - 1);
+      }
+      if (record.type === "transcend") {
+        task.current = Math.min(task.max, task.current + 1);
+        week.weeklyTranscend = Math.max(0, week.weeklyTranscend - 1);
+      }
+      refundAether(character, record.spent || {});
+      removeProfit(record.profitKey, record.reward || 0);
       archiveWeek(state.currentWeekKey);
       save();
       render();
