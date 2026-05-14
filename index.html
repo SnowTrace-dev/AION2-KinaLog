@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AION2 주간 체크리스트</title>
+  <style>
+    @font-face {
+      font-family: "AIONFont";
+      src: local("NEXON Lv2 Gothic Medium");
+    }
+
+    :root {
+      --bg: #061814;
+      --panel: #0b2822;
+      --card: #12352e;
+      --card2: #0f2c27;
+      --line: rgba(230, 198, 117, 0.45);
+      --gold: #e8c878;
+      --gold2: #fff0b0;
+      --text: #f7efd6;
+      --muted: #b9aa7c;
+      --danger: #ff8e7c;
+      --done: #8de3a0;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "AIONFont", "NEXON Lv2 Gothic Medium", "Pretendard", "Malgun Gothic", sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(0, 186, 160, 0.18), transparent 34%),
+        linear-gradient(180deg, #06100e 0%, var(--bg) 100%);
+      color: var(--text);
+      padding: 20px;
+    }
+
+    .app { max-width: 1360px; margin: 0 auto; }
+
+    .topbar {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(18,53,46,.92), rgba(6,24,20,.96));
+      border-radius: 18px;
+      padding: 24px 30px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.03) inset, 0 18px 50px rgba(0,0,0,.28);
+      margin-bottom: 18px;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: .06em;
+      color: var(--gold2);
+      text-shadow: 0 0 14px rgba(232,200,120,.35);
+    }
+
+    .week-range {
+      margin-top: 10px;
+      text-align: right;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .character-section, .weekly-section {
+      border: 1px solid var(--line);
+      background: rgba(11,40,34,.76);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.22);
+      margin-bottom: 18px;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--gold2);
+      margin-bottom: 14px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-head .section-title { margin-bottom: 0; }
+
+    .add-character-btn {
+      min-width: 118px;
+      padding: 9px 13px;
+      color: var(--gold2);
+    }
+
+    .card-list {
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      gap: 12px;
+      padding: 4px 4px 10px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x proximity;
+      -webkit-overflow-scrolling: touch;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .card-list.dragging {
+      cursor: grabbing;
+      scroll-snap-type: none;
+    }
+
+    .card-list::-webkit-scrollbar { height: 8px; }
+    .card-list::-webkit-scrollbar-thumb {
+      background: rgba(232, 200, 120, .28);
+      border-radius: 999px;
+    }
+
+    .card-list::before, .card-list::after {
+      content: "";
+      flex: 0 0 max(4px, calc((100% - 1572px) / 2));
+    }
+
+    .character-card {
+      position: relative;
+      flex: 0 0 254px;
+      max-width: 254px;
+      min-width: 254px;
+      scroll-snap-align: center;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(18,53,46,.96), rgba(8,28,24,.98));
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 14px 34px rgba(0,0,0,.22), inset 0 0 18px rgba(232,200,120,.04);
+    }
+
+    .card-header {
+      position: relative;
+      min-height: 30px;
+      margin-bottom: 8px;
+      padding: 0 48px;
+    }
+
+    .nickname {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--gold2);
+      line-height: 1.25;
+      word-break: keep-all;
+    }
+
+    .power-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .power-text {
+      min-width: 0;
+    }
+
+    .power-value {
+      color: var(--text);
+      font-size: 15px;
+      margin-left: 4px;
+    }
+
+    .energy-line {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .energy-pill {
+      background: rgba(255,255,255,.045);
+      border: 1px solid rgba(232,200,120,.2);
+      border-radius: 999px;
+      padding: 6px 8px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .energy-pill b { color: var(--text); }
+
+    button {
+      border: 1px solid rgba(232,200,120,.45);
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(232,200,120,.20), rgba(105,80,30,.22));
+      color: var(--text);
+      padding: 6px 8px;
+      font-family: inherit;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    button:hover { filter: brightness(1.12); }
+
+    .small-btn {
+      padding: 4px 7px;
+      font-size: 11px;
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: 0;
+      right: 0;
+      border-color: rgba(255,142,124,.35);
+      color: #ffd1ca;
+      background: rgba(255,142,124,.12);
+    }
+
+    .charge-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      margin-bottom: 12px;
+    }
+
+    .charge-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 42px;
+      font-size: 13px;
+      color: var(--gold2);
+    }
+
+    .charge-btn img {
+      width: 25px;
+      height: 25px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 8px rgba(255,230,150,.35));
+    }
+
+    .charge-btn.large img { width: 30px; height: 30px; }
+
+    .homework-area {
+      border-top: 1px solid rgba(232,200,120,.22);
+      padding-top: 14px;
+    }
+
+    .homework-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .homework-title {
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--gold2);
+    }
+
+    .add-task-panel {
+      display: none;
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid rgba(232,200,120,.18);
+      background: rgba(0,0,0,.18);
+      border-radius: 12px;
+    }
+
+    .add-task-panel.open { display: block; }
+
+    .task-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+      gap: 7px;
+    }
+
+    .task-choice {
+      text-align: left;
+      font-size: 13px;
+      background: rgba(255,255,255,.045);
+    }
+
+    .homework-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .homework-item {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 6px;
+      align-items: center;
+      background: rgba(255,255,255,.045);
+      border: 1px solid rgba(232,200,120,.15);
+      border-radius: 11px;
+      padding: 7px;
+    }
+
+    .homework-item.dungeon-task {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: start;
+    }
+
+    .dungeon-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .dungeon-stack .task-label {
+      text-align: left;
+    }
+
+    .homework-item.done .task-label {
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--done);
+    }
+
+    .task-label { font-weight: 900; font-size: 12px; line-height: 1.25; }
+
+    .task-select {
+      width: 100%;
+      max-width: none;
+      background: #081a17;
+      color: var(--text);
+      border: 1px solid rgba(232,200,120,.36);
+      border-radius: 9px;
+      padding: 7px;
+      font-family: inherit;
+      font-weight: 900;
+      font-size: 11px;
+    }
+
+    .weekly-shared {
+      margin-top: 18px;
+      border-top: 1px solid rgba(232,200,120,.22);
+      padding-top: 16px;
+    }
+
+    .weekly-title {
+      color: var(--gold2);
+      font-size: 18px;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+
+    .weekly-stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .stat-pill {
+      border: 1px solid rgba(232,200,120,.24);
+      background: rgba(255,255,255,.045);
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-weight: 900;
+    }
+
+    .profit-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .profit-box {
+      border: 1px solid rgba(232,200,120,.25);
+      background: rgba(255,255,255,.035);
+      border-radius: 14px;
+      padding: 14px;
+      min-height: 120px;
+    }
+
+    .profit-title {
+      color: var(--gold2);
+      font-weight: 900;
+      margin-bottom: 9px;
+    }
+
+    .profit-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,.055);
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .profit-row b { color: var(--text); }
+
+    .extra-profit-section {
+      margin-top: 14px;
+      border: 1px solid rgba(232,200,120,.22);
+      background: rgba(0,0,0,.14);
+      border-radius: 14px;
+      padding: 13px;
+    }
+
+    .extra-profit-title {
+      color: var(--gold2);
+      font-size: 14px;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+
+    .extra-profit-form {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr auto;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .extra-profit-form input {
+      width: 100%;
+      background: #081a17;
+      color: var(--text);
+      border: 1px solid rgba(232,200,120,.36);
+      border-radius: 10px;
+      padding: 9px 10px;
+      font-family: inherit;
+      font-weight: 900;
+      appearance: textfield;
+      -moz-appearance: textfield;
+    }
+
+    .extra-profit-form input::-webkit-outer-spin-button,
+    .extra-profit-form input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .extra-profit-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255,255,255,.055);
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    .extra-profit-row b { color: var(--text); white-space: nowrap; }
+
+    .total-profit {
+      margin-top: 14px;
+      text-align: right;
+      color: var(--gold2);
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .aether-note { display: none; }
+
+    .history-section {
+      margin-top: 18px;
+      border-top: 1px solid rgba(232,200,120,.22);
+      padding-top: 15px;
+    }
+
+    .history-title {
+      color: var(--gold2);
+      font-size: 18px;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+
+    .history-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,.055);
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    .history-row b { color: var(--text); white-space: nowrap; }
+
+    @media (max-width: 700px) {
+      body { padding: 14px; }
+      .character-card { flex: 0 0 88vw; min-width: 88vw; max-width: 88vw; }
+      .profit-grid { grid-template-columns: 1fr; }
+      .extra-profit-form { grid-template-columns: 1fr; }
+      .homework-item, .homework-item.dungeon-task { grid-template-columns: auto 1fr auto; }
+      .task-select { width: 100%; max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="topbar">
+      <div class="title">AION2 주간 체크리스트</div>
+      <div id="weekRange" class="week-range"></div>
+    </section>
+
+    <section class="character-section">
+      <div class="section-head">
+        <div class="section-title">캐릭터 명단</div>
+        <button id="addCharacterButton" class="add-character-btn">+ 캐릭터 추가</button>
+      </div>
+      <div id="cardList" class="card-list"></div>
+
+      <div class="weekly-shared">
+        <div class="weekly-title">주간 누적 플레이 보상 조정</div>
+        <div class="weekly-stats">
+          <span class="stat-pill">원정 <b id="weeklyExpedition">0</b> / 84</span>
+          <span class="stat-pill">초월 <b id="weeklyTranscend">0</b> / 56</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="weekly-section">
+      <div class="section-title">주간 수익</div>
+      <div class="profit-grid">
+        <div class="profit-box">
+          <div class="profit-title">원정</div>
+          <div id="expeditionProfit"></div>
+        </div>
+        <div class="profit-box">
+          <div class="profit-title">초월</div>
+          <div id="transcendProfit"></div>
+        </div>
+        <div class="profit-box">
+          <div class="profit-title">성역</div>
+          <div id="sanctumProfit"></div>
+        </div>
+      </div>
+      <div class="extra-profit-section">
+        <div class="extra-profit-title">추가 수익</div>
+        <div class="extra-profit-form">
+          <input id="extraProfitName" type="text" placeholder="항목명 예: 거래소 판매" />
+          <input id="extraProfitAmount" type="text" inputmode="numeric" placeholder="키나" />
+          <button id="addExtraProfit">추가</button>
+        </div>
+        <div id="extraProfitList"></div>
+      </div>
+      <div class="total-profit">총 수익 <span id="totalProfit">0</span> 키나</div>
+      <div id="aetherRegenNote" class="aether-note"></div>
+      <div class="history-section">
+        <div class="history-title">역대 수익</div>
+        <div id="profitHistory"></div>
+      </div>
+    </section>
+  </main>
+
+  <template id="characterTemplate">
+    <article class="character-card">
+      <div class="card-header">
+        <div class="nickname"></div>
+        <button class="small-btn delete-btn delete-character">삭제</button>
+      </div>
+      <div class="power-row"><span class="power-text">전투력 <span class="power-value">0K</span></span> <button class="small-btn edit-power">수정</button></div>
+
+      <div class="energy-line">
+        <span class="energy-pill">오드 에너지 <b class="aether-value">0 / 840</b></span>
+        <span class="energy-pill">충전 에너지 <b class="bonus-value">0</b></span>
+      </div>
+
+      <div class="charge-buttons">
+        <button class="charge-btn small-charge"><img src="assets/Small.png" alt=""> +10</button>
+        <button class="charge-btn large large-charge"><img src="assets/Large.png" alt=""> +40</button>
+      </div>
+
+      <div class="homework-area">
+        <div class="homework-top">
+          <div class="homework-title">숙제 목록</div>
+          <button class="small-btn toggle-add-task">+ 숙제 추가</button>
+        </div>
+
+        <div class="add-task-panel">
+          <div class="task-grid"></div>
+        </div>
+
+        <div class="homework-list"></div>
+      </div>
+    </article>
+  </template>
+
+  <script>
+    const STORAGE_KEY = "aion2_weekly_checklist_v2";
+
+    const TASKS = [
+      "각성전", "지령서", "일일던전", "[원정] 35/35", "[초월] 28/28",
+      "[성역] 루드라", "[성역] 바고트", "[성역] 칼드릭스",
+      "[산들바람] 오드 에너지", "[산들바람] 펫 영혼결정",
+      "[산들바람] 일일던전 도전권", "[산들바람] 일일던전 즉시완료권",
+      "[산들바람] 악몽 즉시완료권", "[물질변환] 오드 에너지"
+    ];
+
+    const DUNGEON_TASKS = ["[원정]", "[초월]"];
+
+    const DUNGEONS = {
+      "[원정]": [
+        { name: "4티어 보통", reward: 1200000 },
+        { name: "4티어 어려움", reward: 1620000 },
+        { name: "5티어 보통", reward: 1620000 },
+        { name: "5티어 어려움", reward: 2010000 }
+      ],
+      "[초월]": [
+        { name: "2티어 1단계", reward: 1200000 },
+        { name: "2티어 2단계", reward: 1320000 },
+        { name: "2티어 3단계", reward: 1410000 },
+        { name: "2티어 4단계", reward: 1500000 },
+        { name: "3티어 1단계", reward: 1500000 },
+        { name: "3티어 2단계", reward: 1710000 },
+        { name: "3티어 3단계", reward: 2010000 },
+        { name: "3티어 4단계", reward: 2400000 }
+      ]
+    };
+
+    const SANCTUM_REWARDS = {
+      "[성역] 루드라": 2000000,
+      "[성역] 바고트": 4000000,
+      "[성역] 칼드릭스": 0
+    };
+
+    const state = {
+      currentWeekKey: "",
+      currentWeekLabel: "",
+      lastAetherRegenAt: Date.now(),
+      weeks: {},
+      history: []
+    };
+
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2);
+    }
+
+    function comma(n) {
+      return Number(n || 0).toLocaleString();
+    }
+
+    function formatPower(value) {
+      return `${Number(value || 0).toFixed(1)}K`;
+    }
+
+    function formatKoreanDate(date) {
+      return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
+    }
+
+    function getWeekInfo(date = new Date()) {
+      const day = date.getDay();
+      const diffToWednesday = (day - 3 + 7) % 7;
+      const start = new Date(date);
+      start.setHours(0, 0, 0, 0);
+      start.setDate(date.getDate() - diffToWednesday);
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      const key = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-${String(start.getDate()).padStart(2, "0")}`;
+      const label = `${formatKoreanDate(start)} ~ ${formatKoreanDate(end)} 주차`;
+      return { key, label, start, end };
+    }
+
+    function emptyWeek(label) {
+      return { label, weeklyExpedition: 0, weeklyTranscend: 0, profit: {}, profitCount: {}, extraProfit: [], characters: [] };
+    }
+
+    function normalizeWeek(week) {
+      if (!week.profit) week.profit = {};
+      if (!week.profitCount) week.profitCount = {};
+      if (!week.extraProfit) week.extraProfit = [];
+      if (!week.characters) week.characters = [];
+      if (typeof week.weeklyExpedition !== "number") week.weeklyExpedition = 0;
+      if (typeof week.weeklyTranscend !== "number") week.weeklyTranscend = 0;
+      week.characters.forEach(character => {
+        if (!character.tasks) character.tasks = [];
+        if (!character.maxAether) character.maxAether = 840;
+        if (typeof character.bonusAether !== "number") character.bonusAether = 0;
+      });
+    }
+
+    function currentWeek() {
+      return state.weeks[state.currentWeekKey];
+    }
+
+    function getTotalProfit(week = currentWeek()) {
+      const base = Object.values(week.profit || {}).reduce((sum, value) => sum + Number(value || 0), 0);
+      const extra = (week.extraProfit || []).reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      return base + extra;
+    }
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function load() {
+      const weekInfo = getWeekInfo();
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          Object.assign(state, parsed);
+        } catch (e) {}
+      }
+
+      const previousKey = state.currentWeekKey;
+      if (previousKey && previousKey !== weekInfo.key && state.weeks[previousKey]) {
+        archiveWeek(previousKey);
+      }
+
+      state.currentWeekKey = weekInfo.key;
+      state.currentWeekLabel = weekInfo.label;
+      if (!state.weeks[state.currentWeekKey]) state.weeks[state.currentWeekKey] = emptyWeek(weekInfo.label);
+      Object.values(state.weeks).forEach(normalizeWeek);
+      state.weeks[state.currentWeekKey].label = weekInfo.label;
+      if (!state.lastAetherRegenAt) state.lastAetherRegenAt = Date.now();
+      applyAetherRegen();
+      save();
+    }
+
+    function archiveWeek(weekKey) {
+      const week = state.weeks[weekKey];
+      if (!week) return;
+      const total = getTotalProfit(week);
+      const existing = state.history.find(h => h.key === weekKey);
+      if (existing) {
+        existing.label = week.label;
+        existing.total = total;
+      } else {
+        state.history.unshift({ key: weekKey, label: week.label, total });
+      }
+    }
+
+    function getRegenSlotTime(date) {
+      const slot = new Date(date);
+      slot.setMinutes(0, 0, 0);
+      const hour = slot.getHours();
+      const remainder = hour % 3;
+      if (remainder !== 0) slot.setHours(hour - remainder);
+      return slot.getTime();
+    }
+
+    function applyAetherRegen() {
+      const week = currentWeek();
+      if (!week || !week.characters) return;
+      const now = Date.now();
+      const lastSlot = getRegenSlotTime(new Date(state.lastAetherRegenAt));
+      const currentSlot = getRegenSlotTime(new Date(now));
+      const ticks = Math.floor((currentSlot - lastSlot) / (3 * 60 * 60 * 1000));
+      if (ticks <= 0) return;
+
+      const gain = ticks * 15;
+      week.characters.forEach(character => {
+        character.maxAether = character.maxAether || 840;
+        character.aether = Math.min(character.maxAether, Number(character.aether || 0) + gain);
+      });
+      state.lastAetherRegenAt = currentSlot;
+    }
+
+    function getNextRegenText() {
+      const now = new Date();
+      const next = new Date(getRegenSlotTime(now) + 3 * 60 * 60 * 1000);
+      return `오드 에너지는 3시간마다 15 회복 · 다음 회복 ${String(next.getHours()).padStart(2, "0")}:00`;
+    }
+
+    function getTaskBaseName(taskName) {
+      if (taskName.startsWith("[원정]")) return "[원정]";
+      if (taskName.startsWith("[초월]")) return "[초월]";
+      return taskName;
+    }
+
+    function taskOrder(task) {
+      const base = getTaskBaseName(task.name);
+      const idx = TASKS.findIndex(name => getTaskBaseName(name) === base || name === task.name);
+      return idx === -1 ? 999 : idx;
+    }
+
+    function sortTasks(character) {
+      character.tasks.sort((a, b) => taskOrder(a) - taskOrder(b));
+    }
+
+    function addProfit(key, amount) {
+      const week = currentWeek();
+      if (!week.profitCount) week.profitCount = {};
+      week.profit[key] = (week.profit[key] || 0) + amount;
+      week.profitCount[key] = (week.profitCount[key] || 0) + 1;
+      archiveWeek(state.currentWeekKey);
+      save();
+    }
+
+    function enableCardListDrag() {
+      const slider = document.getElementById("cardList");
+      if (!slider || slider.dataset.dragReady === "1") return;
+      slider.dataset.dragReady = "1";
+
+      let isDown = false;
+      let startX = 0;
+      let scrollLeft = 0;
+      let moved = false;
+
+      slider.addEventListener("pointerdown", (event) => {
+        if (event.target.closest("button, input, select, textarea")) return;
+        isDown = true;
+        moved = false;
+        startX = event.clientX;
+        scrollLeft = slider.scrollLeft;
+        slider.classList.add("dragging");
+        slider.setPointerCapture(event.pointerId);
+      });
+
+      slider.addEventListener("pointermove", (event) => {
+        if (!isDown) return;
+        const dx = event.clientX - startX;
+        if (Math.abs(dx) > 4) moved = true;
+        slider.scrollLeft = scrollLeft - dx;
+        if (moved) event.preventDefault();
+      });
+
+      const endDrag = (event) => {
+        if (!isDown) return;
+        isDown = false;
+        slider.classList.remove("dragging");
+        try { slider.releasePointerCapture(event.pointerId); } catch (_) {}
+      };
+
+      slider.addEventListener("pointerup", endDrag);
+      slider.addEventListener("pointercancel", endDrag);
+      slider.addEventListener("pointerleave", endDrag);
+
+      slider.addEventListener("click", (event) => {
+        if (!moved) return;
+        event.preventDefault();
+        event.stopPropagation();
+        moved = false;
+      }, true);
+    }
+
+    function render() {
+      applyAetherRegen();
+      const week = currentWeek();
+      document.getElementById("weekRange").textContent = week.label;
+      const cardList = document.getElementById("cardList");
+      cardList.innerHTML = "";
+
+      week.characters.forEach(character => {
+        sortTasks(character);
+        cardList.appendChild(renderCharacter(character));
+      });
+
+      document.getElementById("weeklyExpedition").textContent = comma(week.weeklyExpedition);
+      document.getElementById("weeklyTranscend").textContent = comma(week.weeklyTranscend);
+      document.getElementById("aetherRegenNote").textContent = "";
+      renderProfit();
+      renderExtraProfit();
+      renderHistory();
+      save();
+    }
+
+    function renderCharacter(character) {
+      const template = document.getElementById("characterTemplate");
+      const card = template.content.cloneNode(true);
+
+      card.querySelector(".nickname").textContent = character.nickname;
+      card.querySelector(".power-value").textContent = formatPower(character.power);
+      card.querySelector(".aether-value").textContent = `${comma(character.aether)} / ${comma(character.maxAether || 840)}`;
+      card.querySelector(".bonus-value").textContent = comma(character.bonusAether);
+
+      card.querySelector(".edit-power").onclick = () => editPower(character.id);
+      card.querySelector(".delete-character").onclick = () => deleteCharacter(character.id);
+      card.querySelector(".small-charge").onclick = () => chargeEnergy(character.id, 10);
+      card.querySelector(".large-charge").onclick = () => chargeEnergy(character.id, 40);
+
+      const panel = card.querySelector(".add-task-panel");
+      card.querySelector(".toggle-add-task").onclick = () => panel.classList.toggle("open");
+
+      const taskGrid = card.querySelector(".task-grid");
+      TASKS.forEach(taskName => {
+        const button = document.createElement("button");
+        button.className = "task-choice";
+        button.textContent = taskName;
+        button.onclick = () => addTask(character.id, taskName);
+        taskGrid.appendChild(button);
+      });
+
+      const list = card.querySelector(".homework-list");
+      character.tasks.forEach(task => list.appendChild(createTaskElement(character, task)));
+
+      return card;
+    }
+
+    function createTaskElement(character, task) {
+      const baseName = getTaskBaseName(task.name);
+      const isDungeon = DUNGEON_TASKS.includes(baseName);
+      const item = document.createElement("div");
+      item.className = "homework-item" + (isDungeon ? " dungeon-task" : "") + (task.done ? " done" : "");
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = task.done;
+      checkbox.onchange = () => {
+        task.done = checkbox.checked;
+        save();
+        render();
+      };
+
+      const label = document.createElement("div");
+      label.className = "task-label";
+      label.textContent = getDisplayTaskName(task);
+
+      item.appendChild(checkbox);
+
+      if (isDungeon) {
+        const stack = document.createElement("div");
+        stack.className = "dungeon-stack";
+        stack.appendChild(label);
+
+        const select = document.createElement("select");
+        select.className = "task-select";
+        DUNGEONS[baseName].forEach(d => {
+          const option = document.createElement("option");
+          option.textContent = d.name;
+          option.value = d.name;
+          if (task.selectedDungeon === d.name) option.selected = true;
+          select.appendChild(option);
+        });
+        select.onchange = () => {
+          task.selectedDungeon = select.value;
+          save();
+        };
+        stack.appendChild(select);
+        item.appendChild(stack);
+      } else {
+        item.appendChild(label);
+      }
+
+      if (isDungeon || SANCTUM_REWARDS[baseName] !== undefined) {
+        const reward = document.createElement("button");
+        reward.className = "reward-btn small-btn";
+        reward.textContent = "보상";
+        reward.onclick = () => claimReward(character.id, task.id);
+        item.appendChild(reward);
+      }
+
+      return item;
+    }
+
+    function getDisplayTaskName(task) {
+      const baseName = getTaskBaseName(task.name);
+      if ((baseName === "[원정]" || baseName === "[초월]") && typeof task.current === "number") {
+        return `${baseName} ${task.current}/${task.max}`;
+      }
+      return task.name;
+    }
+
+    function addCharacter() {
+      if (currentWeek().characters.length >= 6) {
+        alert("캐릭터는 최대 6개까지 등록할 수 있습니다.");
+        return;
+      }
+      const nickname = prompt("추가할 캐릭터 닉네임을 입력하세요.");
+      if (!nickname || !nickname.trim()) return;
+
+      const currentAether = Number((prompt("현재 오드 에너지를 입력해주세요.", "0") || "0").replace(/,/g, ""));
+      const currentBonus = Number((prompt("현재 충전 에너지를 입력해주세요.", "0") || "0").replace(/,/g, ""));
+
+      currentWeek().characters.push({
+        id: uid(),
+        nickname: nickname.trim(),
+        power: 0,
+        aether: currentAether || 0,
+        maxAether: 840,
+        bonusAether: currentBonus || 0,
+        tasks: []
+      });
+      save();
+      render();
+    }
+
+    function deleteCharacter(characterId) {
+      const week = currentWeek();
+      const character = week.characters.find(c => c.id === characterId);
+      if (!character) return;
+      if (!confirm(`${character.nickname} 캐릭터를 삭제할까요?`)) return;
+      week.characters = week.characters.filter(c => c.id !== characterId);
+      save();
+      render();
+    }
+
+    function editPower(characterId) {
+      const character = currentWeek().characters.find(c => c.id === characterId);
+      const value = prompt("전투력을 입력하세요. 예: 512.1", character.power);
+      if (value === null) return;
+      character.power = Number(String(value).replace(/K|k|,/g, "")) || 0;
+      save();
+      render();
+    }
+
+    function chargeEnergy(characterId, amount) {
+      const character = currentWeek().characters.find(c => c.id === characterId);
+      character.bonusAether += amount;
+      save();
+      render();
+    }
+
+    function addTask(characterId, taskName) {
+      const character = currentWeek().characters.find(c => c.id === characterId);
+      const baseName = getTaskBaseName(taskName);
+      if (character.tasks.some(t => getTaskBaseName(t.name) === baseName)) return;
+
+      const task = { id: uid(), name: taskName, done: false };
+      if (taskName.startsWith("[원정]")) {
+        task.current = 35;
+        task.max = 35;
+        task.selectedDungeon = DUNGEONS["[원정]"][0].name;
+      }
+      if (taskName.startsWith("[초월]")) {
+        task.current = 28;
+        task.max = 28;
+        task.selectedDungeon = DUNGEONS["[초월]"][0].name;
+      }
+      character.tasks.push(task);
+      sortTasks(character);
+      save();
+      render();
+    }
+
+    function spendAether(character) {
+      if ((Number(character.aether || 0) + Number(character.bonusAether || 0)) < 80) {
+        alert("오드 에너지가 부족합니다.");
+        return false;
+      }
+
+      let cost = 80;
+      if (character.aether >= cost) {
+        character.aether -= cost;
+      } else {
+        cost -= character.aether;
+        character.aether = 0;
+        character.bonusAether -= cost;
+      }
+      return true;
+    }
+
+    function claimReward(characterId, taskId) {
+      const week = currentWeek();
+      const character = week.characters.find(c => c.id === characterId);
+      const task = character.tasks.find(t => t.id === taskId);
+      const baseName = getTaskBaseName(task.name);
+
+      if (!spendAether(character)) return;
+
+      if (baseName === "[원정]") {
+        if (task.current > 0) task.current -= 1;
+        if (week.weeklyExpedition < 84) week.weeklyExpedition += 1;
+        const dungeon = DUNGEONS["[원정]"].find(d => d.name === task.selectedDungeon) || DUNGEONS["[원정]"][0];
+        addProfit(`원정 ${dungeon.name}`, dungeon.reward);
+      }
+
+      if (baseName === "[초월]") {
+        if (task.current > 0) task.current -= 1;
+        if (week.weeklyTranscend < 56) week.weeklyTranscend += 1;
+        const dungeon = DUNGEONS["[초월]"].find(d => d.name === task.selectedDungeon) || DUNGEONS["[초월]"][0];
+        addProfit(`초월 ${dungeon.name}`, dungeon.reward);
+      }
+
+      if (SANCTUM_REWARDS[baseName] !== undefined) {
+        addProfit(baseName, SANCTUM_REWARDS[baseName]);
+      }
+
+      archiveWeek(state.currentWeekKey);
+      save();
+      render();
+    }
+
+    function renderProfitBox(el, rows) {
+      const week = currentWeek();
+      const counts = week.profitCount || {};
+      el.innerHTML = "";
+      rows.forEach(([key, value]) => {
+        const row = document.createElement("div");
+        row.className = "profit-row";
+        row.innerHTML = `<span>${key} · ${comma(counts[key] || 0)}판</span><b>${comma(value)}</b>`;
+        el.appendChild(row);
+      });
+      if (!el.innerHTML) el.innerHTML = `<div class="profit-row"><span>수익 없음 · 0판</span><b>0</b></div>`;
+    }
+
+    function renderProfit() {
+      const week = currentWeek();
+      const entries = Object.entries(week.profit || {});
+      renderProfitBox(document.getElementById("expeditionProfit"), entries.filter(([key]) => key.startsWith("원정")));
+      renderProfitBox(document.getElementById("transcendProfit"), entries.filter(([key]) => key.startsWith("초월")));
+      renderProfitBox(document.getElementById("sanctumProfit"), entries.filter(([key]) => key.startsWith("[성역]")));
+      document.getElementById("totalProfit").textContent = comma(getTotalProfit(week));
+    }
+
+    function addExtraProfit() {
+      const nameInput = document.getElementById("extraProfitName");
+      const amountInput = document.getElementById("extraProfitAmount");
+      const name = (nameInput.value || "").trim();
+      const amount = Number(String(amountInput.value || "0").replace(/,/g, ""));
+      if (!name) {
+        alert("추가 수익 항목명을 입력해주세요.");
+        return;
+      }
+      if (!amount || amount <= 0) {
+        alert("키나를 입력해주세요.");
+        return;
+      }
+      currentWeek().extraProfit.push({ id: uid(), name, amount });
+      nameInput.value = "";
+      amountInput.value = "";
+      archiveWeek(state.currentWeekKey);
+      save();
+      render();
+    }
+
+    function deleteExtraProfit(id) {
+      const week = currentWeek();
+      week.extraProfit = (week.extraProfit || []).filter(item => item.id !== id);
+      archiveWeek(state.currentWeekKey);
+      save();
+      render();
+    }
+
+    function renderExtraProfit() {
+      const box = document.getElementById("extraProfitList");
+      box.innerHTML = "";
+      const rows = currentWeek().extraProfit || [];
+      if (!rows.length) {
+        box.innerHTML = `<div class="extra-profit-row"><span>기록 없음</span><b>0 키나</b><span></span></div>`;
+        return;
+      }
+      rows.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "extra-profit-row";
+        const name = document.createElement("span");
+        name.textContent = item.name;
+        const amount = document.createElement("b");
+        amount.textContent = `${comma(item.amount)} 키나`;
+        const del = document.createElement("button");
+        del.className = "small-btn";
+        del.textContent = "삭제";
+        del.onclick = () => deleteExtraProfit(item.id);
+        row.appendChild(name);
+        row.appendChild(amount);
+        row.appendChild(del);
+        box.appendChild(row);
+      });
+    }
+
+    function renderHistory() {
+      archiveWeek(state.currentWeekKey);
+      const box = document.getElementById("profitHistory");
+      const rows = [...state.history].sort((a, b) => b.key.localeCompare(a.key));
+      box.innerHTML = "";
+      if (!rows.length) {
+        box.innerHTML = `<div class="history-row"><span>저장된 주차 수익 없음</span><b>0 키나</b></div>`;
+        return;
+      }
+      rows.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "history-row";
+        row.innerHTML = `<span>${item.label}</span><b>${comma(item.total)} 키나</b>`;
+        box.appendChild(row);
+      });
+    }
+
+    document.getElementById("addCharacterButton").onclick = addCharacter;
+    document.getElementById("addExtraProfit").onclick = addExtraProfit;
+    document.getElementById("extraProfitAmount").addEventListener("keydown", e => {
+      if (e.key === "Enter") addExtraProfit();
+    });
+    document.getElementById("extraProfitName").addEventListener("keydown", e => {
+      if (e.key === "Enter") document.getElementById("extraProfitAmount").focus();
+    });
+
+    load();
+    enableCardListDrag();
+    render();
+    setInterval(render, 60 * 1000);
+  </script>
+</body>
+</html>
