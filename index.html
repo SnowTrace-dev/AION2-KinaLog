@@ -766,8 +766,16 @@
       const slot = new Date(date);
       slot.setMinutes(0, 0, 0);
       const hour = slot.getHours();
-      const remainder = hour % 3;
-      if (remainder !== 0) slot.setHours(hour - remainder);
+      // AION2 actual recovery 기준: 08 / 11 / 14 / 17 / 20 / 23 / 02 / 05
+      // 8시를 시작점으로 3시간마다 가장 최근 회복 시각을 계산한다.
+      const baseHour = 8;
+      const diff = ((hour - baseHour) % 24 + 24) % 24;
+      const passed = diff - (diff % 3);
+      slot.setHours(baseHour + passed);
+      if (slot.getHours() !== ((baseHour + passed) % 24)) {
+        slot.setDate(slot.getDate() - 1);
+        slot.setHours((baseHour + passed) % 24, 0, 0, 0);
+      }
       return slot.getTime();
     }
 
@@ -791,7 +799,7 @@
     function getNextRegenText() {
       const now = new Date();
       const next = new Date(getRegenSlotTime(now) + 3 * 60 * 60 * 1000);
-      return `오드 에너지는 3시간마다 15 회복 · 다음 회복 ${String(next.getHours()).padStart(2, "0")}:00`;
+      return `다음 오드 회복 ${String(next.getHours()).padStart(2, "0")}:00`;
     }
 
     function getTaskBaseName(taskName) {
