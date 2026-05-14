@@ -236,6 +236,12 @@
       right: 0;
     }
 
+    .card-header .edit-energy {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
     .delete-task-btn {
       position: static;
       align-self: center;
@@ -586,6 +592,7 @@
   <template id="characterTemplate">
     <article class="character-card">
       <div class="card-header">
+        <button class="small-btn edit-energy">수정</button>
         <div class="nickname"></div>
         <button class="small-btn delete-btn delete-character">삭제</button>
       </div>
@@ -658,6 +665,7 @@
       currentWeekKey: "",
       currentWeekLabel: "",
       lastAetherRegenAt: Date.now(),
+      aetherRegenVersion: 13,
       weeks: {},
       history: []
     };
@@ -763,32 +771,48 @@
     }
 
     function getRegenSlotTime(date) {
-      const slot = new Date(date);
-      slot.setMinutes(0, 0, 0);
-      const hour = slot.getHours();
       // AION2 actual recovery 기준: 08 / 11 / 14 / 17 / 20 / 23 / 02 / 05
-      // 8시를 시작점으로 3시간마다 가장 최근 회복 시각을 계산한다.
-      const baseHour = 8;
-      const diff = ((hour - baseHour) % 24 + 24) % 24;
-      const passed = diff - (diff % 3);
-      slot.setHours(baseHour + passed);
-      if (slot.getHours() !== ((baseHour + passed) % 24)) {
-        slot.setDate(slot.getDate() - 1);
-        slot.setHours((baseHour + passed) % 24, 0, 0, 0);
-      }
-      return slot.getTime();
+      // 날짜가 넘어가는 23시 → 02시 구간까지 안전하게 처리하기 위해
+      // "오늘 몇 시" 계산이 아니라, 08:00 기준 절대 3시간 슬롯으로 계산한다.
+      const target = date instanceof Date ? date : new Date(date);
+      const base = new Date(target);
+      base.setHours(8, 0, 0, 0);
+      if (target.getTime() < base.getTime()) base.setDate(base.getDate() - 1);
+      const threeHours = 3 * 60 * 60 * 1000;
+      const ticks = Math.floor((target.getTime() - base.getTime()) / threeHours);
+      return base.getTime() + ticks * threeHours;
     }
 
     function applyAetherRegen() {
       const week = currentWeek();
       if (!week || !week.characters) return;
+
+      const REGEN_AMOUNT = 15;
+      const THREE_HOURS = 3 * 60 * 60 * 1000;
       const now = Date.now();
-      const lastSlot = getRegenSlotTime(new Date(state.lastAetherRegenAt));
       const currentSlot = getRegenSlotTime(new Date(now));
-      const ticks = Math.floor((currentSlot - lastSlot) / (3 * 60 * 60 * 1000));
+
+      // v13 migration:
+      // 이전 버전은 8시 기준 변경 과정에서 저장된 마지막 회복 시간이 꼬일 수 있었다.
+      // 패치 첫 실행 때는 기존 캐릭터/숙제 데이터는 유지하고, 회복 기준점만 현재 슬롯으로 재설정한다.
+      // 이렇게 해야 모든 캐릭터에 +40 같은 잘못된 일괄 충전이 다시 발생하지 않는다.
+      if (state.aetherRegenVersion !== 13) {
+        state.lastAetherRegenAt = currentSlot;
+        state.aetherRegenVersion = 13;
+        return;
+      }
+
+      const lastSaved = Number(state.lastAetherRegenAt || 0);
+      if (!lastSaved || lastSaved > now + 60 * 1000) {
+        state.lastAetherRegenAt = currentSlot;
+        return;
+      }
+
+      const lastSlot = getRegenSlotTime(new Date(lastSaved));
+      const ticks = Math.floor((currentSlot - lastSlot) / THREE_HOURS);
       if (ticks <= 0) return;
 
-      const gain = ticks * 15;
+      const gain = ticks * REGEN_AMOUNT;
       week.characters.forEach(character => {
         character.maxAether = character.maxAether || 840;
         character.aether = Math.min(character.maxAether, Number(character.aether || 0) + gain);
@@ -916,6 +940,7 @@
       card.querySelector(".bonus-value").textContent = comma(character.bonusAether);
 
       card.querySelector(".edit-power").onclick = () => editPower(character.id);
+      card.querySelector(".edit-energy").onclick = () => editCharacterEnergy(character.id);
       card.querySelector(".delete-character").onclick = () => deleteCharacter(character.id);
       card.querySelector(".small-charge").onclick = () => chargeEnergy(character.id, 10);
       card.querySelector(".large-charge").onclick = () => chargeEnergy(character.id, 40);
@@ -1078,6 +1103,23 @@
       const value = prompt("전투력을 입력하세요. 예: 512.1", character.power);
       if (value === null) return;
       character.power = Number(String(value).replace(/K|k|,/g, "")) || 0;
+      save();
+      render();
+    }
+
+    function editCharacterEnergy(characterId) {
+      const character = currentWeek().characters.find(c => c.id === characterId);
+      if (!character) return;
+
+      const aetherValue = prompt("현재 오드 에너지를 입력해주세요.", character.aether);
+      if (aetherValue === null) return;
+
+      const bonusValue = prompt("현재 충전 에너지를 입력해주세요.", character.bonusAether);
+      if (bonusValue === null) return;
+
+      character.aether = Math.max(0, Number(String(aetherValue).replace(/,/g, "")) || 0);
+      character.maxAether = character.maxAether || 840;
+      character.bonusAether = Math.max(0, Number(String(bonusValue).replace(/,/g, "")) || 0);
       save();
       render();
     }
