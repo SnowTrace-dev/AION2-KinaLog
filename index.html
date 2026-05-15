@@ -839,7 +839,11 @@
     }
 
     function sortTasks(character) {
-      character.tasks.sort((a, b) => taskOrder(a) - taskOrder(b));
+      character.tasks.sort((a, b) => {
+        const doneDiff = Number(Boolean(a.done)) - Number(Boolean(b.done));
+        if (doneDiff !== 0) return doneDiff;
+        return taskOrder(a) - taskOrder(b);
+      });
     }
 
     function addProfit(key, amount) {
