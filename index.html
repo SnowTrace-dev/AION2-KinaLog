@@ -1199,31 +1199,28 @@
       const task = character.tasks.find(t => t.id === taskId);
       const baseName = getTaskBaseName(task.name);
 
-      if ((baseName === "[원정]" || baseName === "[초월]") && task.current <= 0) {
-        alert("남은 횟수가 없습니다.");
-        return;
-      }
-
       const spent = spendAether(character);
       if (!spent) return;
       if (!task.claimHistory) task.claimHistory = [];
 
       if (baseName === "[원정]") {
-        task.current -= 1;
+        const usedCount = task.current > 0;
+        if (usedCount) task.current -= 1;
         if (week.weeklyExpedition < 84) week.weeklyExpedition += 1;
         const dungeon = DUNGEONS["[원정]"].find(d => d.name === task.selectedDungeon) || DUNGEONS["[원정]"][0];
         const profitKey = `원정 ${dungeon.name}`;
         addProfit(profitKey, dungeon.reward);
-        task.claimHistory.push({ type: "expedition", profitKey, reward: dungeon.reward, spent });
+        task.claimHistory.push({ type: "expedition", profitKey, reward: dungeon.reward, spent, usedCount });
       }
 
       if (baseName === "[초월]") {
-        task.current -= 1;
+        const usedCount = task.current > 0;
+        if (usedCount) task.current -= 1;
         if (week.weeklyTranscend < 56) week.weeklyTranscend += 1;
         const dungeon = DUNGEONS["[초월]"].find(d => d.name === task.selectedDungeon) || DUNGEONS["[초월]"][0];
         const profitKey = `초월 ${dungeon.name}`;
         addProfit(profitKey, dungeon.reward);
-        task.claimHistory.push({ type: "transcend", profitKey, reward: dungeon.reward, spent });
+        task.claimHistory.push({ type: "transcend", profitKey, reward: dungeon.reward, spent, usedCount });
       }
 
       if (SANCTUM_REWARDS[baseName] !== undefined) {
@@ -1246,11 +1243,11 @@
 
       const record = task.claimHistory.pop();
       if (record.type === "expedition") {
-        task.current = Math.min(task.max, task.current + 1);
+        if (record.usedCount !== false) task.current = Math.min(task.max, task.current + 1);
         week.weeklyExpedition = Math.max(0, week.weeklyExpedition - 1);
       }
       if (record.type === "transcend") {
-        task.current = Math.min(task.max, task.current + 1);
+        if (record.usedCount !== false) task.current = Math.min(task.max, task.current + 1);
         week.weeklyTranscend = Math.max(0, week.weeklyTranscend - 1);
       }
       refundAether(character, record.spent || {});
