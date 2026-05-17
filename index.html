@@ -438,7 +438,36 @@
       border: 1px solid rgba(232,200,120,.22);
       background: rgba(0,0,0,.14);
       border-radius: 14px;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .fold-title {
+      list-style: none;
+      color: var(--gold2);
+      font-size: 14px;
+      font-weight: 900;
       padding: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .fold-title::-webkit-details-marker { display: none; }
+
+    .fold-title::after {
+      content: "+";
+      color: var(--gold2);
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    details[open] > .fold-title::after { content: "−"; }
+
+    .fold-body {
+      padding: 0 13px 13px;
     }
 
     .extra-profit-title {
@@ -522,6 +551,52 @@
 
     .history-row b { color: var(--text); white-space: nowrap; }
 
+    .history-detail {
+      border-bottom: 1px solid rgba(255,255,255,.055);
+    }
+
+    .history-detail summary {
+      list-style: none;
+      cursor: pointer;
+    }
+
+    .history-detail summary::-webkit-details-marker { display: none; }
+
+    .history-detail .history-row {
+      border-bottom: 0;
+    }
+
+    .history-detail summary .history-row span::before {
+      content: "▸ ";
+      color: var(--gold2);
+    }
+
+    .history-detail[open] summary .history-row span::before { content: "▾ "; }
+
+    .history-breakdown {
+      padding: 0 0 10px 18px;
+      display: grid;
+      gap: 7px;
+    }
+
+    .history-subtitle {
+      color: var(--gold2);
+      font-size: 12px;
+      font-weight: 900;
+      margin-top: 6px;
+    }
+
+    .history-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .history-line b { color: var(--text); white-space: nowrap; }
+
     @media (max-width: 700px) {
       body { padding: 14px; }
       .character-card { flex: 0 0 92vw; min-width: 92vw; max-width: 92vw; }
@@ -571,15 +646,28 @@
           <div id="sanctumProfit"></div>
         </div>
       </div>
-      <div class="extra-profit-section">
-        <div class="extra-profit-title">추가 수익</div>
-        <div class="extra-profit-form">
-          <input id="extraProfitName" type="text" placeholder="항목명 예: 거래소 판매" />
-          <input id="extraProfitAmount" type="text" inputmode="numeric" placeholder="키나" />
-          <button id="addExtraProfit">추가</button>
+      <details class="extra-profit-section" id="extraProfitFold" open>
+        <summary class="fold-title">추가 수익</summary>
+        <div class="fold-body">
+          <div class="extra-profit-form">
+            <input id="extraProfitName" type="text" placeholder="항목명 예: 거래소 판매" />
+            <input id="extraProfitAmount" type="text" inputmode="numeric" placeholder="키나" />
+            <button id="addExtraProfit">추가</button>
+          </div>
+          <div id="extraProfitList"></div>
         </div>
-        <div id="extraProfitList"></div>
-      </div>
+      </details>
+      <details class="extra-profit-section" id="expenseFold">
+        <summary class="fold-title">지출</summary>
+        <div class="fold-body">
+          <div class="extra-profit-form">
+            <input id="expenseName" type="text" placeholder="항목명 예: 오드 구매, 버스비" />
+            <input id="expenseAmount" type="text" inputmode="numeric" placeholder="키나" />
+            <button id="addExpense">추가</button>
+          </div>
+          <div id="expenseList"></div>
+        </div>
+      </details>
       <div class="total-profit">총 수익 <span id="totalProfit">0</span> 키나</div>
       <div id="aetherRegenNote" class="aether-note"></div>
       <div class="history-section">
@@ -700,13 +788,14 @@
     }
 
     function emptyWeek(label) {
-      return { label, weeklyExpedition: 0, weeklyTranscend: 0, profit: {}, profitCount: {}, extraProfit: [], characters: [] };
+      return { label, weeklyExpedition: 0, weeklyTranscend: 0, profit: {}, profitCount: {}, extraProfit: [], expense: [], characters: [] };
     }
 
     function normalizeWeek(week) {
       if (!week.profit) week.profit = {};
       if (!week.profitCount) week.profitCount = {};
       if (!week.extraProfit) week.extraProfit = [];
+      if (!week.expense) week.expense = [];
       if (!week.characters) week.characters = [];
       if (typeof week.weeklyExpedition !== "number") week.weeklyExpedition = 0;
       if (typeof week.weeklyTranscend !== "number") week.weeklyTranscend = 0;
@@ -725,7 +814,8 @@
     function getTotalProfit(week = currentWeek()) {
       const base = Object.values(week.profit || {}).reduce((sum, value) => sum + Number(value || 0), 0);
       const extra = (week.extraProfit || []).reduce((sum, item) => sum + Number(item.amount || 0), 0);
-      return base + extra;
+      const expense = (week.expense || []).reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      return base + extra - expense;
     }
 
     function save() {
@@ -762,11 +852,18 @@
       if (!week) return;
       const total = getTotalProfit(week);
       const existing = state.history.find(h => h.key === weekKey);
+      const detail = {
+        profit: { ...(week.profit || {}) },
+        profitCount: { ...(week.profitCount || {}) },
+        extraProfit: [...(week.extraProfit || [])],
+        expense: [...(week.expense || [])]
+      };
       if (existing) {
         existing.label = week.label;
         existing.total = total;
+        existing.detail = detail;
       } else {
-        state.history.unshift({ key: weekKey, label: week.label, total });
+        state.history.unshift({ key: weekKey, label: week.label, total, detail });
       }
     }
 
@@ -930,6 +1027,7 @@
       document.getElementById("aetherRegenNote").textContent = "";
       renderProfit();
       renderExtraProfit();
+      renderExpense();
       renderHistory();
       save();
     }
@@ -1312,6 +1410,61 @@
       render();
     }
 
+    function addExpense() {
+      const nameInput = document.getElementById("expenseName");
+      const amountInput = document.getElementById("expenseAmount");
+      const name = (nameInput.value || "").trim();
+      const amount = Number(String(amountInput.value || "0").replace(/,/g, ""));
+      if (!name) {
+        alert("지출 항목명을 입력해주세요.");
+        return;
+      }
+      if (!amount || amount <= 0) {
+        alert("키나를 입력해주세요.");
+        return;
+      }
+      currentWeek().expense.push({ id: uid(), name, amount });
+      nameInput.value = "";
+      amountInput.value = "";
+      archiveWeek(state.currentWeekKey);
+      save();
+      render();
+    }
+
+    function deleteExpense(id) {
+      const week = currentWeek();
+      week.expense = (week.expense || []).filter(item => item.id !== id);
+      archiveWeek(state.currentWeekKey);
+      save();
+      render();
+    }
+
+    function renderExpense() {
+      const box = document.getElementById("expenseList");
+      box.innerHTML = "";
+      const rows = currentWeek().expense || [];
+      if (!rows.length) {
+        box.innerHTML = `<div class="extra-profit-row"><span>기록 없음</span><b>0 키나</b><span></span></div>`;
+        return;
+      }
+      rows.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "extra-profit-row";
+        const name = document.createElement("span");
+        name.textContent = item.name;
+        const amount = document.createElement("b");
+        amount.textContent = `-${comma(item.amount)} 키나`;
+        const del = document.createElement("button");
+        del.className = "small-btn";
+        del.textContent = "삭제";
+        del.onclick = () => deleteExpense(item.id);
+        row.appendChild(name);
+        row.appendChild(amount);
+        row.appendChild(del);
+        box.appendChild(row);
+      });
+    }
+
     function renderExtraProfit() {
       const box = document.getElementById("extraProfitList");
       box.innerHTML = "";
@@ -1338,6 +1491,30 @@
       });
     }
 
+    function addHistorySection(container, title, rows, options = {}) {
+      const subtitle = document.createElement("div");
+      subtitle.className = "history-subtitle";
+      subtitle.textContent = title;
+      container.appendChild(subtitle);
+
+      if (!rows.length) {
+        const empty = document.createElement("div");
+        empty.className = "history-line";
+        empty.innerHTML = `<span>기록 없음</span><b>0 키나</b>`;
+        container.appendChild(empty);
+        return;
+      }
+
+      rows.forEach(([name, amount, count]) => {
+        const line = document.createElement("div");
+        line.className = "history-line";
+        const countText = typeof count === "number" ? ` · ${comma(count)}판` : "";
+        const prefix = options.negative ? "-" : "";
+        line.innerHTML = `<span>${name}${countText}</span><b>${prefix}${comma(amount)} 키나</b>`;
+        container.appendChild(line);
+      });
+    }
+
     function renderHistory() {
       archiveWeek(state.currentWeekKey);
       const box = document.getElementById("profitHistory");
@@ -1348,20 +1525,44 @@
         return;
       }
       rows.forEach(item => {
-        const row = document.createElement("div");
-        row.className = "history-row";
-        row.innerHTML = `<span>${item.label}</span><b>${comma(item.total)} 키나</b>`;
-        box.appendChild(row);
+        const detail = item.detail || { profit: {}, profitCount: {}, extraProfit: [], expense: [] };
+        const wrapper = document.createElement("details");
+        wrapper.className = "history-detail";
+
+        const summary = document.createElement("summary");
+        summary.innerHTML = `<div class="history-row"><span>${item.label}</span><b>${comma(item.total)} 키나</b></div>`;
+        wrapper.appendChild(summary);
+
+        const breakdown = document.createElement("div");
+        breakdown.className = "history-breakdown";
+
+        const profitEntries = Object.entries(detail.profit || {});
+        const counts = detail.profitCount || {};
+        addHistorySection(breakdown, "원정", profitEntries.filter(([key]) => key.startsWith("원정")).map(([key, value]) => [key, value, counts[key] || 0]));
+        addHistorySection(breakdown, "초월", profitEntries.filter(([key]) => key.startsWith("초월")).map(([key, value]) => [key, value, counts[key] || 0]));
+        addHistorySection(breakdown, "성역", profitEntries.filter(([key]) => key.startsWith("[성역]")).map(([key, value]) => [key, value, counts[key] || 0]));
+        addHistorySection(breakdown, "추가 수익", (detail.extraProfit || []).map(row => [row.name, row.amount]));
+        addHistorySection(breakdown, "지출", (detail.expense || []).map(row => [row.name, row.amount]), { negative: true });
+
+        wrapper.appendChild(breakdown);
+        box.appendChild(wrapper);
       });
     }
 
     document.getElementById("addCharacterButton").onclick = addCharacter;
     document.getElementById("addExtraProfit").onclick = addExtraProfit;
+    document.getElementById("addExpense").onclick = addExpense;
     document.getElementById("extraProfitAmount").addEventListener("keydown", e => {
       if (e.key === "Enter") addExtraProfit();
     });
     document.getElementById("extraProfitName").addEventListener("keydown", e => {
       if (e.key === "Enter") document.getElementById("extraProfitAmount").focus();
+    });
+    document.getElementById("expenseAmount").addEventListener("keydown", e => {
+      if (e.key === "Enter") addExpense();
+    });
+    document.getElementById("expenseName").addEventListener("keydown", e => {
+      if (e.key === "Enter") document.getElementById("expenseAmount").focus();
     });
 
     load();
