@@ -754,6 +754,7 @@
       currentWeekLabel: "",
       lastAetherRegenAt: Date.now(),
       aetherRegenVersion: 13,
+      characters: [],
       weeks: {},
       history: []
     };
@@ -775,11 +776,14 @@
     }
 
     function getWeekInfo(date = new Date()) {
-      const day = date.getDay();
+      // AION2 주간 초기화 기준: 매주 수요일 오전 5시
+      // 05:00 이전 시간은 아직 이전 주차로 본다.
+      const shifted = new Date(date.getTime() - 5 * 60 * 60 * 1000);
+      const day = shifted.getDay();
       const diffToWednesday = (day - 3 + 7) % 7;
-      const start = new Date(date);
-      start.setHours(0, 0, 0, 0);
-      start.setDate(date.getDate() - diffToWednesday);
+      const start = new Date(shifted);
+      start.setHours(5, 0, 0, 0);
+      start.setDate(shifted.getDate() - diffToWednesday);
       const end = new Date(start);
       end.setDate(start.getDate() + 6);
       const key = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-${String(start.getDate()).padStart(2, "0")}`;
@@ -788,7 +792,15 @@
     }
 
     function emptyWeek(label) {
-      return { label, weeklyExpedition: 0, weeklyTranscend: 0, profit: {}, profitCount: {}, extraProfit: [], expense: [], characters: [] };
+      return { label, weeklyExpedition: 0, weeklyTranscend: 0, profit: {}, profitCount: {}, extraProfit: [], expense: [] };
+    }
+
+    function normalizeCharacter(character) {
+      if (!character.tasks) character.tasks = [];
+      if (!character.maxAether) character.maxAether = 840;
+      if (typeof character.aether !== "number") character.aether = Number(character.aether || 0);
+      if (typeof character.bonusAether !== "number") character.bonusAether = Number(character.bonusAether || 0);
+      character.tasks.forEach(task => { if (!task.claimHistory) task.claimHistory = []; });
     }
 
     function normalizeWeek(week) {
@@ -796,14 +808,32 @@
       if (!week.profitCount) week.profitCount = {};
       if (!week.extraProfit) week.extraProfit = [];
       if (!week.expense) week.expense = [];
-      if (!week.characters) week.characters = [];
       if (typeof week.weeklyExpedition !== "number") week.weeklyExpedition = 0;
       if (typeof week.weeklyTranscend !== "number") week.weeklyTranscend = 0;
-      week.characters.forEach(character => {
-        if (!character.tasks) character.tasks = [];
-        if (!character.maxAether) character.maxAether = 840;
-        if (typeof character.bonusAether !== "number") character.bonusAether = 0;
-        character.tasks.forEach(task => { if (!task.claimHistory) task.claimHistory = []; });
+      // 예전 버전 호환용. 캐릭터는 이제 주차 데이터가 아니라 전역 데이터로 보관한다.
+      delete week.characters;
+    }
+
+    function getCharacters() {
+      if (!Array.isArray(state.characters)) state.characters = [];
+      state.characters.forEach(normalizeCharacter);
+      return state.characters;
+    }
+
+    function resetCharacterWeeklyProgress() {
+      getCharacters().forEach(character => {
+        character.tasks.forEach(task => {
+          task.done = false;
+          task.claimHistory = [];
+          if (task.name && task.name.startsWith("[원정]")) {
+            task.max = task.max || 35;
+            task.current = task.max;
+          }
+          if (task.name && task.name.startsWith("[초월]")) {
+            task.max = task.max || 28;
+            task.current = task.max;
+          }
+        });
       });
     }
 
@@ -832,8 +862,21 @@
         } catch (e) {}
       }
 
+      // v19 migration: 예전 버전은 캐릭터를 주차 안에 저장했기 때문에
+      // 새 주차 생성 시 캐릭터가 사라질 수 있었다.
+      // 저장되어 있던 주차 중 캐릭터가 남아있는 곳에서 전역 캐릭터 목록으로 옮긴다.
+      if (!Array.isArray(state.characters) || state.characters.length === 0) {
+        const currentWeekCharacters = state.weeks?.[state.currentWeekKey]?.characters;
+        const fallbackWeek = Object.values(state.weeks || {}).find(week => Array.isArray(week.characters) && week.characters.length);
+        state.characters = Array.isArray(currentWeekCharacters) && currentWeekCharacters.length
+          ? currentWeekCharacters
+          : (fallbackWeek?.characters || []);
+      }
+      getCharacters();
+
       const previousKey = state.currentWeekKey;
-      if (previousKey && previousKey !== weekInfo.key && state.weeks[previousKey]) {
+      const changedWeek = Boolean(previousKey && previousKey !== weekInfo.key);
+      if (changedWeek && state.weeks[previousKey]) {
         archiveWeek(previousKey);
       }
 
@@ -842,6 +885,11 @@
       if (!state.weeks[state.currentWeekKey]) state.weeks[state.currentWeekKey] = emptyWeek(weekInfo.label);
       Object.values(state.weeks).forEach(normalizeWeek);
       state.weeks[state.currentWeekKey].label = weekInfo.label;
+
+      // 주차가 바뀔 때 초기화되는 것은 진행도/체크/이번 주 수익뿐이다.
+      // 캐릭터 명단, 오드 에너지, 충전 에너지, 추가한 숙제 목록은 유지한다.
+      if (changedWeek) resetCharacterWeeklyProgress();
+
       if (!state.lastAetherRegenAt) state.lastAetherRegenAt = Date.now();
       applyAetherRegen();
       save();
@@ -882,7 +930,7 @@
 
     function applyAetherRegen() {
       const week = currentWeek();
-      if (!week || !week.characters) return;
+      if (!week) return;
 
       const REGEN_AMOUNT = 15;
       const THREE_HOURS = 3 * 60 * 60 * 1000;
@@ -910,7 +958,7 @@
       if (ticks <= 0) return;
 
       const gain = ticks * REGEN_AMOUNT;
-      week.characters.forEach(character => {
+      getCharacters().forEach(character => {
         character.maxAether = character.maxAether || 840;
         character.aether = Math.min(character.maxAether, Number(character.aether || 0) + gain);
       });
@@ -1017,7 +1065,7 @@
       const cardList = document.getElementById("cardList");
       cardList.innerHTML = "";
 
-      week.characters.forEach(character => {
+      getCharacters().forEach(character => {
         sortTasks(character);
         cardList.appendChild(renderCharacter(character));
       });
@@ -1167,7 +1215,7 @@
     }
 
     function addCharacter() {
-      if (currentWeek().characters.length >= 6) {
+      if (getCharacters().length >= 6) {
         alert("캐릭터는 최대 6개까지 등록할 수 있습니다.");
         return;
       }
@@ -1177,7 +1225,7 @@
       const currentAether = Number((prompt("현재 오드 에너지를 입력해주세요.", "0") || "0").replace(/,/g, ""));
       const currentBonus = Number((prompt("현재 충전 에너지를 입력해주세요.", "0") || "0").replace(/,/g, ""));
 
-      currentWeek().characters.push({
+      getCharacters().push({
         id: uid(),
         nickname: nickname.trim(),
         power: 0,
@@ -1192,16 +1240,16 @@
 
     function deleteCharacter(characterId) {
       const week = currentWeek();
-      const character = week.characters.find(c => c.id === characterId);
+      const character = getCharacters().find(c => c.id === characterId);
       if (!character) return;
       if (!confirm(`${character.nickname} 캐릭터를 삭제할까요?`)) return;
-      week.characters = week.characters.filter(c => c.id !== characterId);
+      state.characters = getCharacters().filter(c => c.id !== characterId);
       save();
       render();
     }
 
     function editPower(characterId) {
-      const character = currentWeek().characters.find(c => c.id === characterId);
+      const character = getCharacters().find(c => c.id === characterId);
       const value = prompt("전투력을 입력하세요. 예: 512.1", character.power);
       if (value === null) return;
       character.power = Number(String(value).replace(/K|k|,/g, "")) || 0;
@@ -1210,7 +1258,7 @@
     }
 
     function editCharacterEnergy(characterId) {
-      const character = currentWeek().characters.find(c => c.id === characterId);
+      const character = getCharacters().find(c => c.id === characterId);
       if (!character) return;
 
       const aetherValue = prompt("현재 오드 에너지를 입력해주세요.", character.aether);
@@ -1227,14 +1275,14 @@
     }
 
     function chargeEnergy(characterId, amount) {
-      const character = currentWeek().characters.find(c => c.id === characterId);
+      const character = getCharacters().find(c => c.id === characterId);
       character.bonusAether += amount;
       save();
       render();
     }
 
     function addTask(characterId, taskName) {
-      const character = currentWeek().characters.find(c => c.id === characterId);
+      const character = getCharacters().find(c => c.id === characterId);
       const baseName = getTaskBaseName(taskName);
       if (character.tasks.some(t => getTaskBaseName(t.name) === baseName)) return;
 
@@ -1256,7 +1304,7 @@
     }
 
     function removeTask(characterId, taskId) {
-      const character = currentWeek().characters.find(c => c.id === characterId);
+      const character = getCharacters().find(c => c.id === characterId);
       const task = character?.tasks.find(t => t.id === taskId);
       if (!task) return;
       if ((task.claimHistory || []).length > 0) {
@@ -1297,7 +1345,7 @@
 
     function claimReward(characterId, taskId) {
       const week = currentWeek();
-      const character = week.characters.find(c => c.id === characterId);
+      const character = getCharacters().find(c => c.id === characterId);
       const task = character.tasks.find(t => t.id === taskId);
       const baseName = getTaskBaseName(task.name);
 
@@ -1339,7 +1387,7 @@
 
     function undoReward(characterId, taskId) {
       const week = currentWeek();
-      const character = week.characters.find(c => c.id === characterId);
+      const character = getCharacters().find(c => c.id === characterId);
       const task = character?.tasks.find(t => t.id === taskId);
       if (!task || !(task.claimHistory || []).length) return;
 
