@@ -803,11 +803,38 @@
       character.tasks.forEach(task => { if (!task.claimHistory) task.claimHistory = []; });
     }
 
+    function mergeMoneyRows(rows) {
+      const merged = [];
+      (rows || []).forEach(item => {
+        const name = String(item.name || "").trim();
+        const amount = Number(item.amount || 0);
+        if (!name || !amount) return;
+        const existing = merged.find(row => row.name === name);
+        if (existing) {
+          existing.amount += amount;
+        } else {
+          merged.push({ id: item.id || uid(), name, amount });
+        }
+      });
+      return merged;
+    }
+
+    function addOrMergeMoneyRow(rows, name, amount) {
+      const existing = rows.find(item => item.name === name);
+      if (existing) {
+        existing.amount = Number(existing.amount || 0) + amount;
+      } else {
+        rows.push({ id: uid(), name, amount });
+      }
+    }
+
     function normalizeWeek(week) {
       if (!week.profit) week.profit = {};
       if (!week.profitCount) week.profitCount = {};
       if (!week.extraProfit) week.extraProfit = [];
       if (!week.expense) week.expense = [];
+      week.extraProfit = mergeMoneyRows(week.extraProfit);
+      week.expense = mergeMoneyRows(week.expense);
       if (typeof week.weeklyExpedition !== "number") week.weeklyExpedition = 0;
       if (typeof week.weeklyTranscend !== "number") week.weeklyTranscend = 0;
       // 예전 버전 호환용. 캐릭터는 이제 주차 데이터가 아니라 전역 데이터로 보관한다.
@@ -1442,7 +1469,7 @@
         alert("키나를 입력해주세요.");
         return;
       }
-      currentWeek().extraProfit.push({ id: uid(), name, amount });
+      addOrMergeMoneyRow(currentWeek().extraProfit, name, amount);
       nameInput.value = "";
       amountInput.value = "";
       archiveWeek(state.currentWeekKey);
@@ -1471,7 +1498,7 @@
         alert("키나를 입력해주세요.");
         return;
       }
-      currentWeek().expense.push({ id: uid(), name, amount });
+      addOrMergeMoneyRow(currentWeek().expense, name, amount);
       nameInput.value = "";
       amountInput.value = "";
       archiveWeek(state.currentWeekKey);
