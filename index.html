@@ -506,11 +506,32 @@
       margin-bottom: 10px;
     }
 
+    .preset-chip-wrap {
+      display: inline-flex;
+      align-items: stretch;
+      border: 1px solid rgba(232,200,120,.32);
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(232,200,120,.08);
+    }
+
     .preset-chip {
+      border: 0;
+      border-radius: 0;
       padding: 7px 10px;
       font-size: 12px;
       color: var(--gold2);
-      background: rgba(232,200,120,.10);
+      background: transparent;
+    }
+
+    .preset-delete {
+      border: 0;
+      border-left: 1px solid rgba(232,200,120,.24);
+      border-radius: 0;
+      padding: 7px 8px;
+      font-size: 12px;
+      color: #ffd1ca;
+      background: rgba(255,142,124,.10);
     }
 
     .extra-profit-form {
@@ -909,6 +930,22 @@
       const key = type === "expense" ? "expensePresets" : "extraProfitPresets";
       if (!Array.isArray(state[key])) state[key] = [];
       if (!state[key].some(item => normalizeMoneyName(item) === cleanName)) state[key].push(cleanName);
+    }
+
+    function forgetPreset(type, name) {
+      const cleanName = normalizeMoneyName(name);
+      if (!cleanName) return;
+      const label = type === "expense" ? "지출" : "추가 수익";
+      if (!confirm(`${label} 프리셋 '${cleanName}' 항목을 삭제할까요?`)) return;
+      const key = type === "expense" ? "expensePresets" : "extraProfitPresets";
+      state[key] = (state[key] || []).filter(item => normalizeMoneyName(item) !== cleanName);
+
+      const inputId = type === "expense" ? "expenseName" : "extraProfitName";
+      const input = document.getElementById(inputId);
+      if (input && normalizeMoneyName(input.value) === cleanName) input.value = "";
+
+      save();
+      render();
     }
 
     function getCharacters() {
@@ -1615,15 +1652,34 @@
           return;
         }
         names.forEach(name => {
+          const type = inputId === "expenseName" ? "expense" : "extraProfit";
+          const wrap = document.createElement("span");
+          wrap.className = "preset-chip-wrap";
+
           const button = document.createElement("button");
+          button.type = "button";
           button.className = "preset-chip";
           button.textContent = name;
+          button.title = "항목 선택";
           button.onclick = () => {
             document.getElementById(inputId).value = name;
             const amountId = inputId === "expenseName" ? "expenseAmount" : "extraProfitAmount";
             document.getElementById(amountId).focus();
           };
-          box.appendChild(button);
+
+          const del = document.createElement("button");
+          del.type = "button";
+          del.className = "preset-delete";
+          del.textContent = "×";
+          del.title = "프리셋 삭제";
+          del.onclick = (event) => {
+            event.stopPropagation();
+            forgetPreset(type, name);
+          };
+
+          wrap.appendChild(button);
+          wrap.appendChild(del);
+          box.appendChild(wrap);
         });
       };
       renderChips("extraProfitPresetList", state.extraProfitPresets, "extraProfitName");
