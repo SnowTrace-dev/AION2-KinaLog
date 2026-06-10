@@ -65,6 +65,16 @@
       font-weight: 800;
     }
 
+    .utility-row {
+      margin-top: 14px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .utility-row input[type="file"] { display: none; }
+
     .character-section, .weekly-section {
       border: 1px solid var(--line);
       background: rgba(11,40,34,.76);
@@ -240,6 +250,18 @@
       position: absolute;
       top: 0;
       left: 0;
+    }
+
+    .order-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin: 0 0 8px;
+    }
+
+    .order-buttons button {
+      min-width: 42px;
+      color: var(--gold2);
     }
 
     .delete-task-btn {
@@ -477,6 +499,20 @@
       margin-bottom: 10px;
     }
 
+    .preset-row {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .preset-chip {
+      padding: 7px 10px;
+      font-size: 12px;
+      color: var(--gold2);
+      background: rgba(232,200,120,.10);
+    }
+
     .extra-profit-form {
       display: grid;
       grid-template-columns: 1.3fr 1fr auto;
@@ -612,6 +648,11 @@
     <section class="topbar">
       <div class="title">AION2 주간 체크리스트</div>
       <div id="weekRange" class="week-range"></div>
+      <div class="utility-row">
+        <button id="backupButton" class="small-btn">데이터 백업</button>
+        <button id="restoreButton" class="small-btn">데이터 복원</button>
+        <input id="restoreFile" type="file" accept="application/json,.json" />
+      </div>
     </section>
 
     <section class="character-section">
@@ -649,6 +690,7 @@
       <details class="extra-profit-section" id="extraProfitFold" open>
         <summary class="fold-title">추가 수익</summary>
         <div class="fold-body">
+          <div id="extraProfitPresetList" class="preset-row"></div>
           <div class="extra-profit-form">
             <input id="extraProfitName" type="text" placeholder="항목명 예: 거래소 판매" />
             <input id="extraProfitAmount" type="text" inputmode="numeric" placeholder="키나" />
@@ -660,6 +702,7 @@
       <details class="extra-profit-section" id="expenseFold">
         <summary class="fold-title">지출</summary>
         <div class="fold-body">
+          <div id="expensePresetList" class="preset-row"></div>
           <div class="extra-profit-form">
             <input id="expenseName" type="text" placeholder="항목명 예: 오드 구매, 버스비" />
             <input id="expenseAmount" type="text" inputmode="numeric" placeholder="키나" />
@@ -685,6 +728,10 @@
         <button class="small-btn delete-btn delete-character">삭제</button>
       </div>
       <div class="power-row"><span class="power-text">전투력 <span class="power-value">0K</span></span> <button class="small-btn edit-power">수정</button></div>
+      <div class="order-buttons">
+        <button class="small-btn move-left">←</button>
+        <button class="small-btn move-right">→</button>
+      </div>
 
       <div class="energy-line">
         <span class="energy-pill">오드 에너지 <b class="aether-value">0 / 840</b></span>
@@ -746,7 +793,7 @@
     const SANCTUM_REWARDS = {
       "[성역] 루드라": 2000000,
       "[성역] 바고트": 4000000,
-      "[성역] 칼드릭스": 0
+      "[성역] 칼드릭스": 6000000
     };
 
     const state = {
@@ -756,7 +803,9 @@
       aetherRegenVersion: 13,
       characters: [],
       weeks: {},
-      history: []
+      history: [],
+      extraProfitPresets: [],
+      expensePresets: []
     };
 
     function uid() {
@@ -803,42 +852,30 @@
       character.tasks.forEach(task => { if (!task.claimHistory) task.claimHistory = []; });
     }
 
-    function mergeMoneyRows(rows) {
-      const merged = [];
-      (rows || []).forEach(item => {
-        const name = String(item.name || "").trim();
-        const amount = Number(item.amount || 0);
-        if (!name || !amount) return;
-        const existing = merged.find(row => row.name === name);
-        if (existing) {
-          existing.amount += amount;
-        } else {
-          merged.push({ id: item.id || uid(), name, amount });
-        }
-      });
-      return merged;
-    }
-
-    function addOrMergeMoneyRow(rows, name, amount) {
-      const existing = rows.find(item => item.name === name);
-      if (existing) {
-        existing.amount = Number(existing.amount || 0) + amount;
-      } else {
-        rows.push({ id: uid(), name, amount });
-      }
-    }
-
     function normalizeWeek(week) {
       if (!week.profit) week.profit = {};
       if (!week.profitCount) week.profitCount = {};
       if (!week.extraProfit) week.extraProfit = [];
       if (!week.expense) week.expense = [];
-      week.extraProfit = mergeMoneyRows(week.extraProfit);
-      week.expense = mergeMoneyRows(week.expense);
       if (typeof week.weeklyExpedition !== "number") week.weeklyExpedition = 0;
       if (typeof week.weeklyTranscend !== "number") week.weeklyTranscend = 0;
       // 예전 버전 호환용. 캐릭터는 이제 주차 데이터가 아니라 전역 데이터로 보관한다.
       delete week.characters;
+    }
+
+    function normalizePresets() {
+      if (!Array.isArray(state.extraProfitPresets)) state.extraProfitPresets = [];
+      if (!Array.isArray(state.expensePresets)) state.expensePresets = [];
+      state.extraProfitPresets = [...new Set(state.extraProfitPresets.map(v => String(v || "").trim()).filter(Boolean))];
+      state.expensePresets = [...new Set(state.expensePresets.map(v => String(v || "").trim()).filter(Boolean))];
+    }
+
+    function rememberPreset(type, name) {
+      const cleanName = String(name || "").trim();
+      if (!cleanName) return;
+      const key = type === "expense" ? "expensePresets" : "extraProfitPresets";
+      if (!Array.isArray(state[key])) state[key] = [];
+      if (!state[key].includes(cleanName)) state[key].push(cleanName);
     }
 
     function getCharacters() {
@@ -900,6 +937,7 @@
           : (fallbackWeek?.characters || []);
       }
       getCharacters();
+      normalizePresets();
 
       const previousKey = state.currentWeekKey;
       const changedWeek = Boolean(previousKey && previousKey !== weekInfo.key);
@@ -1101,6 +1139,7 @@
       document.getElementById("weeklyTranscend").textContent = comma(week.weeklyTranscend);
       document.getElementById("aetherRegenNote").textContent = "";
       renderProfit();
+      renderMoneyPresets();
       renderExtraProfit();
       renderExpense();
       renderHistory();
@@ -1119,6 +1158,8 @@
       card.querySelector(".edit-power").onclick = () => editPower(character.id);
       card.querySelector(".edit-energy").onclick = () => editCharacterEnergy(character.id);
       card.querySelector(".delete-character").onclick = () => deleteCharacter(character.id);
+      card.querySelector(".move-left").onclick = () => moveCharacter(character.id, -1);
+      card.querySelector(".move-right").onclick = () => moveCharacter(character.id, 1);
       card.querySelector(".small-charge").onclick = () => chargeEnergy(character.id, 10);
       card.querySelector(".large-charge").onclick = () => chargeEnergy(character.id, 40);
 
@@ -1271,6 +1312,17 @@
       if (!character) return;
       if (!confirm(`${character.nickname} 캐릭터를 삭제할까요?`)) return;
       state.characters = getCharacters().filter(c => c.id !== characterId);
+      save();
+      render();
+    }
+
+    function moveCharacter(characterId, direction) {
+      const characters = getCharacters();
+      const index = characters.findIndex(c => c.id === characterId);
+      const nextIndex = index + direction;
+      if (index < 0 || nextIndex < 0 || nextIndex >= characters.length) return;
+      const [moved] = characters.splice(index, 1);
+      characters.splice(nextIndex, 0, moved);
       save();
       render();
     }
@@ -1469,7 +1521,7 @@
         alert("키나를 입력해주세요.");
         return;
       }
-      addOrMergeMoneyRow(currentWeek().extraProfit, name, amount);
+      currentWeek().extraProfit.push({ id: uid(), name, amount });
       nameInput.value = "";
       amountInput.value = "";
       archiveWeek(state.currentWeekKey);
@@ -1498,7 +1550,7 @@
         alert("키나를 입력해주세요.");
         return;
       }
-      addOrMergeMoneyRow(currentWeek().expense, name, amount);
+      currentWeek().expense.push({ id: uid(), name, amount });
       nameInput.value = "";
       amountInput.value = "";
       archiveWeek(state.currentWeekKey);
@@ -1512,6 +1564,35 @@
       archiveWeek(state.currentWeekKey);
       save();
       render();
+    }
+
+    function renderMoneyPresets() {
+      normalizePresets();
+      const renderChips = (boxId, names, inputId) => {
+        const box = document.getElementById(boxId);
+        if (!box) return;
+        box.innerHTML = "";
+        if (!names.length) {
+          const empty = document.createElement("span");
+          empty.className = "energy-pill";
+          empty.textContent = "저장된 항목 없음";
+          box.appendChild(empty);
+          return;
+        }
+        names.forEach(name => {
+          const button = document.createElement("button");
+          button.className = "preset-chip";
+          button.textContent = name;
+          button.onclick = () => {
+            document.getElementById(inputId).value = name;
+            const amountId = inputId === "expenseName" ? "expenseAmount" : "extraProfitAmount";
+            document.getElementById(amountId).focus();
+          };
+          box.appendChild(button);
+        });
+      };
+      renderChips("extraProfitPresetList", state.extraProfitPresets, "extraProfitName");
+      renderChips("expensePresetList", state.expensePresets, "expenseName");
     }
 
     function renderExpense() {
@@ -1624,9 +1705,62 @@
       });
     }
 
+    function backupData() {
+      archiveWeek(state.currentWeekKey);
+      save();
+      const today = new Date();
+      const dateText = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `aion2_backup_${dateText}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function restoreDataFromFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          if (!parsed || typeof parsed !== "object") throw new Error("invalid");
+          if (!confirm("현재 저장 데이터를 백업 파일 내용으로 덮어쓸까요?")) return;
+          Object.keys(state).forEach(key => delete state[key]);
+          Object.assign(state, parsed);
+          normalizePresets();
+          getCharacters();
+          const weekInfo = getWeekInfo();
+          state.currentWeekKey = weekInfo.key;
+          state.currentWeekLabel = weekInfo.label;
+          if (!state.weeks) state.weeks = {};
+          if (!state.weeks[state.currentWeekKey]) state.weeks[state.currentWeekKey] = emptyWeek(weekInfo.label);
+          Object.values(state.weeks).forEach(normalizeWeek);
+          state.weeks[state.currentWeekKey].label = weekInfo.label;
+          if (!state.history) state.history = [];
+          if (!state.lastAetherRegenAt) state.lastAetherRegenAt = Date.now();
+          save();
+          render();
+          alert("복원이 완료되었습니다.");
+        } catch (e) {
+          alert("복원할 수 없는 파일입니다. JSON 백업 파일을 확인해주세요.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
     document.getElementById("addCharacterButton").onclick = addCharacter;
     document.getElementById("addExtraProfit").onclick = addExtraProfit;
     document.getElementById("addExpense").onclick = addExpense;
+    document.getElementById("backupButton").onclick = backupData;
+    document.getElementById("restoreButton").onclick = () => document.getElementById("restoreFile").click();
+    document.getElementById("restoreFile").addEventListener("change", e => {
+      restoreDataFromFile(e.target.files?.[0]);
+      e.target.value = "";
+    });
     document.getElementById("extraProfitAmount").addEventListener("keydown", e => {
       if (e.key === "Enter") addExtraProfit();
     });
