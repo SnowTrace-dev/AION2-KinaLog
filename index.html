@@ -852,11 +852,44 @@
       character.tasks.forEach(task => { if (!task.claimHistory) task.claimHistory = []; });
     }
 
+    function normalizeMoneyName(name) {
+      return String(name || "").replace(/\s+/g, " ").trim();
+    }
+
+    function mergeMoneyRows(rows) {
+      const merged = [];
+      (rows || []).forEach(item => {
+        const name = normalizeMoneyName(item.name);
+        const amount = Number(item.amount || 0);
+        if (!name || !amount) return;
+        const existing = merged.find(row => row.name === name);
+        if (existing) {
+          existing.amount += amount;
+        } else {
+          merged.push({ id: item.id || uid(), name, amount });
+        }
+      });
+      return merged;
+    }
+
+    function addOrMergeMoneyRow(rows, name, amount) {
+      const cleanName = normalizeMoneyName(name);
+      const existing = rows.find(item => normalizeMoneyName(item.name) === cleanName);
+      if (existing) {
+        existing.name = cleanName;
+        existing.amount = Number(existing.amount || 0) + Number(amount || 0);
+      } else {
+        rows.push({ id: uid(), name: cleanName, amount: Number(amount || 0) });
+      }
+    }
+
     function normalizeWeek(week) {
       if (!week.profit) week.profit = {};
       if (!week.profitCount) week.profitCount = {};
       if (!week.extraProfit) week.extraProfit = [];
       if (!week.expense) week.expense = [];
+      week.extraProfit = mergeMoneyRows(week.extraProfit);
+      week.expense = mergeMoneyRows(week.expense);
       if (typeof week.weeklyExpedition !== "number") week.weeklyExpedition = 0;
       if (typeof week.weeklyTranscend !== "number") week.weeklyTranscend = 0;
       // 예전 버전 호환용. 캐릭터는 이제 주차 데이터가 아니라 전역 데이터로 보관한다.
@@ -871,11 +904,11 @@
     }
 
     function rememberPreset(type, name) {
-      const cleanName = String(name || "").trim();
+      const cleanName = normalizeMoneyName(name);
       if (!cleanName) return;
       const key = type === "expense" ? "expensePresets" : "extraProfitPresets";
       if (!Array.isArray(state[key])) state[key] = [];
-      if (!state[key].includes(cleanName)) state[key].push(cleanName);
+      if (!state[key].some(item => normalizeMoneyName(item) === cleanName)) state[key].push(cleanName);
     }
 
     function getCharacters() {
@@ -1511,7 +1544,7 @@
     function addExtraProfit() {
       const nameInput = document.getElementById("extraProfitName");
       const amountInput = document.getElementById("extraProfitAmount");
-      const name = (nameInput.value || "").trim();
+      const name = normalizeMoneyName(nameInput.value);
       const amount = Number(String(amountInput.value || "0").replace(/,/g, ""));
       if (!name) {
         alert("추가 수익 항목명을 입력해주세요.");
@@ -1521,7 +1554,8 @@
         alert("키나를 입력해주세요.");
         return;
       }
-      currentWeek().extraProfit.push({ id: uid(), name, amount });
+      addOrMergeMoneyRow(currentWeek().extraProfit, name, amount);
+      rememberPreset("extraProfit", name);
       nameInput.value = "";
       amountInput.value = "";
       archiveWeek(state.currentWeekKey);
@@ -1540,7 +1574,7 @@
     function addExpense() {
       const nameInput = document.getElementById("expenseName");
       const amountInput = document.getElementById("expenseAmount");
-      const name = (nameInput.value || "").trim();
+      const name = normalizeMoneyName(nameInput.value);
       const amount = Number(String(amountInput.value || "0").replace(/,/g, ""));
       if (!name) {
         alert("지출 항목명을 입력해주세요.");
@@ -1550,7 +1584,8 @@
         alert("키나를 입력해주세요.");
         return;
       }
-      currentWeek().expense.push({ id: uid(), name, amount });
+      addOrMergeMoneyRow(currentWeek().expense, name, amount);
+      rememberPreset("expense", name);
       nameInput.value = "";
       amountInput.value = "";
       archiveWeek(state.currentWeekKey);
