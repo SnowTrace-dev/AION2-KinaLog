@@ -91,6 +91,15 @@
       font-weight: 800;
     }
 
+    .reset-countdown {
+      margin-top: 4px;
+      text-align: right;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+
     .utility-row {
       margin-top: 18px;
       display: flex;
@@ -353,6 +362,25 @@
       padding-top: 14px;
     }
 
+    .character-weekly-profit {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .character-weekly-profit b {
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+
     .homework-top {
       display: flex;
       justify-content: space-between;
@@ -459,6 +487,11 @@
 
     .homework-item { cursor: pointer; }
     .homework-item select, .homework-item button, .homework-item input { cursor: pointer; }
+
+    .homework-item:not(.dungeon-task):hover {
+      background: rgba(96,165,250,.10);
+    }
+
 
     .weekly-shared {
       margin-top: 18px;
@@ -741,7 +774,10 @@
     <section class="topbar">
       <img class="brand-logo" src="assets/Logo.png" alt="키나로그" />
       <div class="top-actions">
-        <div id="weekRange" class="week-range"></div>
+        <div>
+          <div id="weekRange" class="week-range"></div>
+          <div id="resetCountdown" class="reset-countdown"></div>
+        </div>
       </div>
     </section>
 
@@ -851,6 +887,11 @@
         </div>
 
         <div class="homework-list"></div>
+      </div>
+
+      <div class="character-weekly-profit">
+        <span>주간 수익</span>
+        <b class="character-profit-value">0 키나</b>
       </div>
     </article>
   </template>
@@ -1097,6 +1138,31 @@
       return base + extra - expense;
     }
 
+    function getCharacterWeeklyProfit(character) {
+      return (character.tasks || []).reduce((sum, task) => {
+        return sum + (task.claimHistory || []).reduce((taskSum, record) => {
+          return taskSum + Number(record.reward || 0);
+        }, 0);
+      }, 0);
+    }
+
+    function getWeeklyResetCountdownText() {
+      const weekInfo = getWeekInfo();
+      const resetTime = new Date(weekInfo.start);
+      resetTime.setDate(resetTime.getDate() + 7);
+      const diff = Math.max(0, resetTime.getTime() - Date.now());
+
+      const dayMs = 24 * 60 * 60 * 1000;
+      const hourMs = 60 * 60 * 1000;
+      const minuteMs = 60 * 1000;
+
+      const days = Math.floor(diff / dayMs);
+      const hours = Math.floor((diff % dayMs) / hourMs);
+      const minutes = Math.floor((diff % hourMs) / minuteMs);
+
+      return `주간 초기화까지 : ${days}일 ${String(hours).padStart(2, "0")}시간 ${String(minutes).padStart(2, "0")}분`;
+    }
+
     function save() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
@@ -1275,7 +1341,7 @@
       let moved = false;
 
       slider.addEventListener("pointerdown", (event) => {
-        if (event.target.closest("button, input, select, textarea")) return;
+        if (event.target.closest("button, input, select, textarea, .homework-item, .task-main, .task-label, .homework-list")) return;
         isDown = true;
         moved = false;
         startX = event.clientX;
@@ -1314,7 +1380,9 @@
     function render() {
       applyAetherRegen();
       const week = currentWeek();
-      document.getElementById("weekRange").textContent = week.label;
+      document.getElementById("weekRange").textContent = `${week.eraLabel || getEraWeekLabelFromKey(state.currentWeekKey)} : ${week.label}`;
+      const resetCountdown = document.getElementById("resetCountdown");
+      if (resetCountdown) resetCountdown.textContent = getWeeklyResetCountdownText();
       const cardList = document.getElementById("cardList");
       cardList.innerHTML = "";
 
@@ -1342,6 +1410,8 @@
       card.querySelector(".power-value").textContent = formatPower(character.power);
       card.querySelector(".aether-value").textContent = `${comma(character.aether)} / ${comma(character.maxAether || 840)}`;
       card.querySelector(".bonus-value").textContent = `(+${comma(character.bonusAether)})`;
+      const profitValue = card.querySelector(".character-profit-value");
+      if (profitValue) profitValue.textContent = `${comma(getCharacterWeeklyProfit(character))} 키나`;
 
       card.querySelector(".edit-power").onclick = () => editPower(character.id);
       card.querySelector(".edit-energy").onclick = () => editCharacterEnergy(character.id);
