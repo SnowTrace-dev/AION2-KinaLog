@@ -2251,6 +2251,18 @@
       padding: 0 !important;
     }
 
+    /* feedback15: allow deleting stigma rows while keeping a six-item maximum */
+    .growth-card .add-stigma {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    .growth-card .add-stigma:disabled {
+      opacity: .45 !important;
+      cursor: not-allowed !important;
+    }
+
 </style>
 </head>
 <body>
@@ -2481,9 +2493,6 @@
           character.stigmas = [];
         }
         character.stigmas = character.stigmas.slice(0, MAX_STIGMA_COUNT);
-        while (character.stigmas.length < MAX_STIGMA_COUNT) {
-          character.stigmas.push({ id: uid(), name: "", level: 0 });
-        }
         character.stigmas.forEach(stigma => {
           if (!stigma.id) stigma.id = uid();
           stigma.name = String(stigma.name || "");
@@ -3966,7 +3975,9 @@
         renderPowerHistoryRows(card.querySelector(".growth-history-rows"), character.powerHistory || []);
         const list = card.querySelector(".stigma-list");
         (character.stigmas || []).forEach(stigma => list.appendChild(createStigmaRow(character, stigma)));
-        card.querySelector(".add-stigma").onclick = () => {
+        const addStigmaButton = card.querySelector(".add-stigma");
+        addStigmaButton.disabled = character.stigmas.length >= MAX_STIGMA_COUNT;
+        addStigmaButton.onclick = () => {
           if (character.stigmas.length >= MAX_STIGMA_COUNT) return;
           character.stigmas.push({ id: uid(), name: "", level: 0 });
           save();
@@ -4008,10 +4019,11 @@
       const del = document.createElement("button");
       del.className = "small-btn delete-btn";
       del.textContent = "×";
-      del.onclick = () => {
+      del.onclick = event => {
+        event.preventDefault();
+        event.stopPropagation();
         if (!confirm("스티그마 항목을 삭제할까요?")) return;
-        stigma.name = "";
-        stigma.level = 0;
+        character.stigmas = (character.stigmas || []).filter(item => item.id !== stigma.id);
         save();
         renderGrowth();
       };
