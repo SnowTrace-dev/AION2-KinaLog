@@ -2263,6 +2263,368 @@
       cursor: not-allowed !important;
     }
 
+
+    /* V1.3.0 chapter 1 reward and efficiency tuning */
+    .profit-summary-grid {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .profit-summary-card {
+      border: 1px solid var(--line);
+      background: var(--soft-bg);
+      border-radius: 14px;
+      padding: 12px;
+      text-align: right;
+      font-weight: 900;
+    }
+    .profit-summary-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .profit-summary-card b {
+      color: var(--gold2);
+      font-size: 18px;
+    }
+    .reward-breakdown {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+      line-height: 1.35;
+    }
+    .reward-breakdown .bound { color: var(--muted); font-size: 11px; }
+    .reward-breakdown .total { color: var(--gold2); font-size: 12px; }
+    .efficiency { color: var(--done); font-size: 11px; }
+    .growth-summary-panel {
+      flex: 0 0 292px;
+      width: 292px;
+      min-width: 292px;
+      max-width: 292px;
+      border: 2px solid var(--line);
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 12px;
+      scroll-snap-align: center;
+    }
+    .growth-summary-panel-title {
+      color: var(--gold2);
+      font-size: 17px;
+      font-weight: 900;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .growth-summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255,255,255,.055);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .growth-summary-row b { color: var(--text); white-space: nowrap; }
+    .awakening-select {
+      width: 100%;
+      margin-top: 10px;
+      background: var(--input-bg);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px;
+      font-family: inherit;
+      font-weight: 900;
+    }
+
+    .efficiency-section {
+      margin-top: 14px;
+      border: 2px solid var(--line);
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 0;
+      overflow: hidden;
+    }
+    .efficiency-table {
+      display: grid;
+      gap: 0;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .efficiency-table-row {
+      display: grid;
+      grid-template-columns: 88px minmax(0,1fr) 52px 82px 82px 82px 86px;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,.055);
+      color: var(--muted);
+    }
+    .efficiency-table-row.header { color: var(--gold2); border-bottom-color: var(--line); }
+    .efficiency-table-row b { color: var(--text); text-align: right; white-space: nowrap; }
+    .efficiency-table-row span:nth-child(2) { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    @media (max-width: 700px) {
+      .efficiency-table-row { grid-template-columns: 70px minmax(120px,1fr) 42px 70px 70px 70px 72px; overflow-x: auto; }
+      .efficiency-table { overflow-x: auto; }
+    }
+
+    @media (max-width: 700px) {
+      .profit-summary-grid { grid-template-columns: 1fr; }
+      .growth-summary-panel { flex: 0 0 88vw; min-width: 88vw; max-width: 88vw; width: 88vw; }
+    }
+
+
+    /* feedback: V1.3.0 readability tuning */
+    .profit-summary-grid {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 6px !important;
+      margin-top: 14px !important;
+      text-align: right !important;
+    }
+    .profit-summary-card {
+      border: 0 !important;
+      background: transparent !important;
+      border-radius: 0 !important;
+      padding: 2px 0 !important;
+      display: flex !important;
+      justify-content: flex-end !important;
+      align-items: baseline !important;
+      gap: 12px !important;
+    }
+    .profit-summary-card span {
+      color: var(--muted) !important;
+      font-size: 13px !important;
+      margin: 0 !important;
+    }
+    .profit-summary-card b {
+      color: var(--text) !important;
+      font-size: 16px !important;
+    }
+    .profit-summary-card.total-card {
+      margin-top: 4px !important;
+      padding-top: 10px !important;
+      border-top: 1px solid var(--line) !important;
+    }
+    .profit-summary-card.total-card span,
+    .profit-summary-card.total-card b {
+      color: var(--gold2) !important;
+      font-size: 22px !important;
+      font-weight: 900 !important;
+    }
+    .character-profit-lines {
+      display: grid;
+      gap: 3px;
+      text-align: right;
+      line-height: 1.35;
+    }
+    .character-profit-lines span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .character-profit-lines b {
+      color: var(--gold2);
+      font-size: 13px;
+    }
+    .character-weekly-profit { align-items: flex-start !important; }
+    .efficiency-section { margin-top: 18px !important; }
+    .efficiency-table-row {
+      grid-template-columns: minmax(160px,1fr) 52px 82px 82px 82px 86px !important;
+    }
+    .efficiency-table-row span:first-child {
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .history-table {
+      display: grid;
+      gap: 0;
+      border: 1px solid rgba(96,165,250,.28);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .history-table-row {
+      display: grid;
+      grid-template-columns: minmax(120px,1fr) 110px 110px 110px;
+      gap: 8px;
+      align-items: center;
+      padding: 9px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.055);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .history-table-row:last-child { border-bottom: 0; }
+    .history-table-row.header { color: var(--gold2); background: rgba(255,255,255,.035); }
+    .history-table-row b { color: var(--text); text-align: right; white-space: nowrap; }
+    .history-table-row .history-total { color: var(--gold2); }
+    .history-detail summary { display: block; }
+    .history-detail summary .history-table-row span:first-child::before {
+      content: "▸ ";
+      color: var(--gold2);
+    }
+    .history-detail[open] summary .history-table-row span:first-child::before { content: "▾ "; }
+    .stigma-weekly-panel {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.035);
+      padding: 10px;
+      width: 100%;
+    }
+    .stigma-weekly-title {
+      color: var(--gold2);
+      font-size: 14px;
+      font-weight: 900;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .stigma-weekly-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 4px 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .stigma-weekly-row b { color: var(--text); white-space: nowrap; }
+    .stigma-weekly-row.total b { color: var(--gold2); }
+    .growth-card .awakening-select { margin-top: 8px; }
+    @media (max-width: 700px) {
+      .efficiency-table-row { grid-template-columns: minmax(140px,1fr) 44px 70px 70px 70px 76px !important; }
+      .history-table-row { grid-template-columns: minmax(120px,1fr) 82px 82px 86px; font-size: 11px; }
+    }
+
+
+    /* V1.3.0 feedback layout */
+    .bottom-info-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+      margin-top: 18px;
+      border-top: 1px solid var(--line);
+      padding-top: 15px;
+    }
+    .bottom-info-grid .history-section {
+      margin-top: 0 !important;
+      border-top: 0 !important;
+      padding-top: 0 !important;
+    }
+    .bottom-info-grid .efficiency-section {
+      margin-top: 0 !important;
+    }
+    .efficiency-table-row {
+      grid-template-columns: minmax(150px,1fr) 46px 72px 72px 72px 76px !important;
+      padding-left: 8px !important;
+      padding-right: 8px !important;
+    }
+    .history-breakdown-table {
+      display: grid;
+      gap: 0;
+      margin: 8px 0 12px;
+      border: 1px solid rgba(96,165,250,.24);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .history-breakdown-row {
+      display: grid;
+      grid-template-columns: minmax(110px,1fr) 76px 76px 76px;
+      gap: 6px;
+      align-items: center;
+      padding: 7px 8px;
+      border-bottom: 1px solid rgba(255,255,255,.055);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .history-breakdown-row:last-child { border-bottom: 0; }
+    .history-breakdown-row.header { color: var(--gold2); background: rgba(255,255,255,.03); }
+    .history-breakdown-row b { color: var(--text); text-align: right; white-space: nowrap; }
+    .history-breakdown-row .history-total { color: var(--gold2); }
+    .homework-item.dungeon-task { align-items: center !important; }
+    .homework-item.dungeon-task input[type="checkbox"] { align-self: center !important; }
+    .homework-item.dungeon-task .dungeon-stack { align-items: center !important; }
+    .reward-breakdown { align-items: flex-end; }
+    .stigma-weekly-mount { width: 100%; }
+    .stigma-area .stigma-weekly-panel {
+      width: 100% !important;
+      margin-top: 8px;
+      box-sizing: border-box;
+    }
+    @media (max-width: 900px) {
+      .bottom-info-grid { grid-template-columns: 1fr; }
+    }
+
+
+    /* feedback: V1.3.0 final tuning - stigma 13 slots, hidden scroll, history safety */
+    .growth-card .stigma-area {
+      height: 610px !important;
+      min-height: 610px !important;
+      max-height: 610px !important;
+    }
+    .growth-card .stigma-list {
+      flex: 0 0 270px !important;
+      min-height: 270px !important;
+      max-height: 270px !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      cursor: grab !important;
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+      user-select: none !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+    .growth-card .stigma-list::-webkit-scrollbar {
+      width: 0 !important;
+      height: 0 !important;
+      display: none !important;
+    }
+    .growth-card .stigma-list.dragging {
+      cursor: grabbing !important;
+    }
+    .growth-card .stigma-weekly-mount {
+      width: 250px !important;
+      max-width: 250px !important;
+      box-sizing: border-box !important;
+      margin-top: 8px !important;
+      flex: 0 0 auto !important;
+    }
+    /* growth tab fix: keep the weekly stigma estimate from being clipped */
+    .growth-card .stigma-area {
+      height: auto !important;
+      min-height: 610px !important;
+      max-height: none !important;
+      overflow: visible !important;
+    }
+    .growth-card .stigma-weekly-panel {
+      max-height: none !important;
+      overflow: visible !important;
+    }
+    .growth-card .growth-summary-panel {
+      width: 250px !important;
+      min-width: 250px !important;
+      max-width: 250px !important;
+      flex: 0 0 auto !important;
+      padding: 10px !important;
+      box-sizing: border-box !important;
+    }
+    .growth-card .growth-summary-row {
+      font-size: 12px !important;
+      padding: 6px 0 !important;
+    }
+    .efficiency-table-row b:last-child {
+      color: var(--gold2) !important;
+      font-weight: 900 !important;
+      font-size: 13px !important;
+    }
+
 </style>
 </head>
 <body>
@@ -2341,9 +2703,17 @@
       </details>
       <div class="total-profit">총 수익 <span id="totalProfit">0</span> 키나</div>
       <div id="aetherRegenNote" class="aether-note"></div>
-      <div class="history-section">
-        <div class="history-title">역대 수익</div>
-        <div id="profitHistory"></div>
+      <div class="bottom-info-grid">
+        <div class="history-section">
+          <div class="history-title">역대 수익</div>
+          <div id="profitHistory"></div>
+        </div>
+        <details class="efficiency-section" id="efficiencyFold" open>
+          <summary class="fold-title">오드 효율표</summary>
+          <div class="fold-body">
+            <div id="efficiencyTable" class="efficiency-table"></div>
+          </div>
+        </details>
       </div>
       <div class="utility-row">
         <button id="backupButton" class="small-btn">데이터 백업</button>
@@ -2416,7 +2786,7 @@
   <script>
     const STORAGE_KEY = "aion2_weekly_checklist_v2";
     const TASKS = [
-      "각성전", "지령서", "일일던전", "어비스 회랑", "[원정]", "[초월]",
+      "각성전", "지령서", "일일던전", "어비스 지령서", "어비스 회랑", "[원정]", "[초월]",
       "[성역] 루드라", "[성역] 바고트", "[성역] 칼드릭스",
       "[산들바람] 오드 에너지", "[산들바람] 펫 영혼결정",
       "[산들바람] 일던 도전권", "[산들바람] 일던 즉완권",
@@ -2425,30 +2795,45 @@
 
     const DUNGEON_TASKS = ["[원정]", "[초월]"];
 
+    function makeReward(normal = 0, bound = 0, aetherCost = 80) {
+      return { normal: Number(normal || 0), bound: Number(bound || 0), aetherCost: Number(aetherCost || 80) };
+    }
+
     const DUNGEONS = {
       "[원정]": [
-        { name: "4티어 보통", reward: 1200000 },
-        { name: "4티어 어려움", reward: 1620000 },
-        { name: "5티어 보통", reward: 1620000 },
-        { name: "5티어 어려움", reward: 2010000 }
+        { name: "4티어 보통", reward: makeReward(600000, 600000, 80) },
+        { name: "4티어 어려움", reward: makeReward(1620000, 0, 80) },
+        { name: "5티어 보통", reward: makeReward(1620000, 0, 80) },
+        { name: "5티어 어려움", reward: makeReward(2010000, 0, 80) },
+        { name: "6티어 보통", reward: makeReward(2010000, 0, 80) },
+        { name: "6티어 어려움", reward: makeReward(3600000, 0, 120) }
       ],
       "[초월]": [
-        { name: "2티어 1단계", reward: 1200000 },
-        { name: "2티어 2단계", reward: 1320000 },
-        { name: "2티어 3단계", reward: 1410000 },
-        { name: "2티어 4단계", reward: 1500000 },
-        { name: "3티어 1단계", reward: 1500000 },
-        { name: "3티어 2단계", reward: 1710000 },
-        { name: "3티어 3단계", reward: 2010000 },
-        { name: "3티어 4단계", reward: 2400000 }
+        { name: "2티어 1단계", reward: makeReward(600000, 600000, 80) },
+        { name: "3티어 1단계", reward: makeReward(1500000, 0, 80) },
+        { name: "3티어 2단계", reward: makeReward(1710000, 0, 80) },
+        { name: "3티어 3단계", reward: makeReward(2010000, 0, 80) },
+        { name: "3티어 4단계", reward: makeReward(2400000, 0, 80) },
+        { name: "4티어 1단계", reward: makeReward(1710000, 0, 80) },
+        { name: "4티어 2단계", reward: makeReward(2010000, 0, 80) },
+        { name: "4티어 3단계", reward: makeReward(2400000, 0, 80) },
+        { name: "4티어 4단계", reward: makeReward(4200000, 0, 120) }
       ]
     };
 
     const SANCTUM_REWARDS = {
-      "[성역] 루드라": 2000000,
-      "[성역] 바고트": 4000000,
-      "[성역] 칼드릭스": 6000000
+      "[성역] 루드라": makeReward(2000000, 2000000, 80),
+      "[성역] 바고트": makeReward(8000000, 0, 80),
+      "[성역] 칼드릭스": makeReward(12000000, 0, 80)
     };
+
+    const AWAKENING_SCORE_TABLE = [
+      { score: 14000, shards: 48 },
+      { score: 13000, shards: 48 },
+      { score: 12000, shards: 48 },
+      { score: 11000, shards: 46 },
+      { score: 10000, shards: 44 }
+    ];
 
     const state = {
       currentWeekKey: "",
@@ -2461,7 +2846,7 @@
       extraProfitPresets: [],
       expensePresets: [],
       activeTab: "checklist",
-      growth: { lastRecordedWeekKey: "", abyssRecords: [], lastAbyssPromptKey: "" },
+      growth: { lastRecordedWeekKey: "", abyssRecords: [], lastAbyssPromptKey: "", awakeningScore: 12000 },
       memos: []
     };
 
@@ -2477,7 +2862,7 @@
       return `${Number(value || 0).toFixed(1)}K`;
     }
 
-    const MAX_STIGMA_COUNT = 6;
+    const MAX_STIGMA_COUNT = 13;
 
     function getSortedCharacters() {
       return [...getCharacters()].sort((a, b) => Number(b.power || 0) - Number(a.power || 0));
@@ -2487,8 +2872,10 @@
       if (!state.growth || typeof state.growth !== "object") state.growth = {};
       if (!Array.isArray(state.growth.abyssRecords)) state.growth.abyssRecords = [];
       if (!state.growth.lastAbyssPromptKey) state.growth.lastAbyssPromptKey = "";
+      if (typeof state.growth.awakeningScore !== "number") state.growth.awakeningScore = 12000;
       getCharacters().forEach(character => {
         if (!Array.isArray(character.powerHistory)) character.powerHistory = [];
+        if (typeof character.awakeningScore !== "number") character.awakeningScore = Number(state.growth?.awakeningScore || 12000);
         if (!Array.isArray(character.stigmas)) {
           character.stigmas = [];
         }
@@ -2537,8 +2924,26 @@
       return rows.reduce((sum, row) => sum + Number(row.count || 0), 0) / rows.length;
     }
 
-    function getWeeklyStigmaIncome() {
-      return getAverageAbyssCount() + 2.5;
+    function getAwakeningRewardShards(score = 0) {
+      const value = Number(score || 0);
+      const row = AWAKENING_SCORE_TABLE.find(item => value >= item.score);
+      return row ? row.shards : 0;
+    }
+
+    function getCharacterAwakeningScore(character) {
+      return Number(character?.awakeningScore ?? state.growth?.awakeningScore ?? 12000);
+    }
+
+    function getAwakeningStigmaIncome(character) {
+      return getAwakeningRewardShards(getCharacterAwakeningScore(character)) * 3 / 48;
+    }
+
+    function getWeeklyAbyssIncome() {
+      return getAverageAbyssCount() * 2;
+    }
+
+    function getWeeklyStigmaIncome(character) {
+      return getWeeklyAbyssIncome() + getAwakeningStigmaIncome(character);
     }
 
     const STIGMA_LEVEL_COST = Array.from({ length: 21 }, (_, level) => {
@@ -2673,8 +3078,8 @@
       character.tasks.forEach(task => {
         if (!task.claimHistory) task.claimHistory = [];
         task.name = normalizeTaskName(task.name);
-        if (task.name === "[원정]" && !task.selectedDungeon) task.selectedDungeon = DUNGEONS["[원정]"][0].name;
-        if (task.name === "[초월]" && !task.selectedDungeon) task.selectedDungeon = DUNGEONS["[초월]"][0].name;
+        if (task.name === "[원정]" && (!task.selectedDungeon || !DUNGEONS["[원정]"].some(d => d.name === task.selectedDungeon))) task.selectedDungeon = DUNGEONS["[원정]"][0].name;
+        if (task.name === "[초월]" && (!task.selectedDungeon || !DUNGEONS["[초월]"].some(d => d.name === task.selectedDungeon))) task.selectedDungeon = DUNGEONS["[초월]"][0].name;
         delete task.current;
         delete task.max;
       });
@@ -2731,6 +3136,8 @@
       if (typeof week.weeklyExpedition !== "number") week.weeklyExpedition = 0;
       if (typeof week.weeklyTranscend !== "number") week.weeklyTranscend = 0;
       if (!week.eraLabel) week.eraLabel = getEraWeekLabelFromKey(Object.keys(state.weeks || {}).find(key => state.weeks[key] === week));
+      // 시즌3 및 구버전 기록 보호: 숫자 하나로 저장된 기존 보상은 normalizeReward()에서 전부 일반 키나로 처리한다.
+      // 따라서 챕터1 보상표가 일반/각인으로 바뀌어도 과거 역대 수익은 각인 키나로 재분류되지 않는다.
       // 예전 버전 호환용. 캐릭터는 이제 주차 데이터가 아니라 전역 데이터로 보관한다.
       delete week.characters;
     }
@@ -2789,19 +3196,77 @@
       return state.weeks[state.currentWeekKey];
     }
 
+    function normalizeReward(reward) {
+      if (typeof reward === "number") return { normal: Number(reward || 0), bound: 0, aetherCost: 80 };
+      if (!reward || typeof reward !== "object") return { normal: 0, bound: 0, aetherCost: 80 };
+      return { normal: Number(reward.normal || 0), bound: Number(reward.bound || 0), aetherCost: Number(reward.aetherCost || 80) };
+    }
+
+    function isBoundKinaName(name) {
+      const compact = String(name || "").replace(/\s+/g, "");
+      return compact.includes("각인키나");
+    }
+
+    function getMoneyRowReward(item, options = {}) {
+      const amount = Number(item?.amount || 0);
+      if (options.expense) return { normal: -amount, bound: 0, aetherCost: 0 };
+      return isBoundKinaName(item?.name)
+        ? { normal: 0, bound: amount, aetherCost: 0 }
+        : { normal: amount, bound: 0, aetherCost: 0 };
+    }
+
+    function rewardTotal(reward) {
+      const row = normalizeReward(reward);
+      return row.normal + row.bound;
+    }
+
+    function addRewards(a, b) {
+      const left = normalizeReward(a);
+      const right = normalizeReward(b);
+      return { normal: left.normal + right.normal, bound: left.bound + right.bound, aetherCost: right.aetherCost || left.aetherCost || 80 };
+    }
+
+    function subtractRewards(a, b) {
+      const left = normalizeReward(a);
+      const right = normalizeReward(b);
+      return { normal: Math.max(0, left.normal - right.normal), bound: Math.max(0, left.bound - right.bound), aetherCost: left.aetherCost || right.aetherCost || 80 };
+    }
+
+    function getProfitTotals(week = currentWeek()) {
+      const base = Object.values(week?.profit || {}).reduce((sum, value) => {
+        const reward = normalizeReward(value);
+        sum.normal += reward.normal;
+        sum.bound += reward.bound;
+        return sum;
+      }, { normal: 0, bound: 0 });
+
+      (week?.extraProfit || []).forEach(item => {
+        const reward = getMoneyRowReward(item);
+        base.normal += reward.normal;
+        base.bound += reward.bound;
+      });
+
+      (week?.expense || []).forEach(item => {
+        base.normal += getMoneyRowReward(item, { expense: true }).normal;
+      });
+
+      base.normal = Math.max(0, base.normal);
+      base.bound = Math.max(0, base.bound);
+      base.total = base.normal + base.bound;
+      return base;
+    }
     function getTotalProfit(week = currentWeek()) {
-      const base = Object.values(week.profit || {}).reduce((sum, value) => sum + Number(value || 0), 0);
-      const extra = (week.extraProfit || []).reduce((sum, item) => sum + Number(item.amount || 0), 0);
-      const expense = (week.expense || []).reduce((sum, item) => sum + Number(item.amount || 0), 0);
-      return base + extra - expense;
+      return getProfitTotals(week).total;
+    }
+
+    function getCharacterWeeklyProfitReward(character) {
+      return (character.tasks || []).reduce((sum, task) => {
+        return (task.claimHistory || []).reduce((taskSum, record) => addRewards(taskSum, record.reward || 0), sum);
+      }, { normal: 0, bound: 0, aetherCost: 80 });
     }
 
     function getCharacterWeeklyProfit(character) {
-      return (character.tasks || []).reduce((sum, task) => {
-        return sum + (task.claimHistory || []).reduce((taskSum, record) => {
-          return taskSum + Number(record.reward || 0);
-        }, 0);
-      }, 0);
+      return rewardTotal(getCharacterWeeklyProfitReward(character));
     }
 
     function getWeeklyResetCountdownText() {
@@ -2974,7 +3439,7 @@
     function addProfit(key, amount) {
       const week = currentWeek();
       if (!week.profitCount) week.profitCount = {};
-      week.profit[key] = (week.profit[key] || 0) + amount;
+      week.profit[key] = addRewards(week.profit[key] || 0, amount);
       week.profitCount[key] = (week.profitCount[key] || 0) + 1;
       archiveWeek(state.currentWeekKey);
       save();
@@ -2983,9 +3448,9 @@
     function removeProfit(key, amount) {
       const week = currentWeek();
       if (!week.profitCount) week.profitCount = {};
-      week.profit[key] = Math.max(0, (week.profit[key] || 0) - amount);
+      week.profit[key] = subtractRewards(week.profit[key] || 0, amount);
       week.profitCount[key] = Math.max(0, (week.profitCount[key] || 0) - 1);
-      if (week.profit[key] <= 0) delete week.profit[key];
+      if (rewardTotal(week.profit[key]) <= 0) delete week.profit[key];
       if (week.profitCount[key] <= 0) delete week.profitCount[key];
       archiveWeek(state.currentWeekKey);
       save();
@@ -3086,6 +3551,52 @@
       }, true);
     }
 
+    function enableVerticalDragScrollElement(slider, ignoreSelector = "button, input, select, textarea") {
+      if (!slider || slider.dataset.verticalDragReady === "1") return;
+      slider.dataset.verticalDragReady = "1";
+
+      let isDown = false;
+      let startY = 0;
+      let scrollTop = 0;
+      let moved = false;
+
+      slider.addEventListener("pointerdown", (event) => {
+        if (event.target.closest(ignoreSelector)) return;
+        isDown = true;
+        moved = false;
+        startY = event.clientY;
+        scrollTop = slider.scrollTop;
+        slider.classList.add("dragging");
+        slider.setPointerCapture(event.pointerId);
+      });
+
+      slider.addEventListener("pointermove", (event) => {
+        if (!isDown) return;
+        const dy = event.clientY - startY;
+        if (Math.abs(dy) > 4) moved = true;
+        slider.scrollTop = scrollTop - dy;
+        if (moved) event.preventDefault();
+      });
+
+      const endDrag = (event) => {
+        if (!isDown) return;
+        isDown = false;
+        slider.classList.remove("dragging");
+        try { slider.releasePointerCapture(event.pointerId); } catch (_) {}
+      };
+
+      slider.addEventListener("pointerup", endDrag);
+      slider.addEventListener("pointercancel", endDrag);
+      slider.addEventListener("pointerleave", endDrag);
+
+      slider.addEventListener("click", (event) => {
+        if (!moved) return;
+        event.preventDefault();
+        event.stopPropagation();
+        moved = false;
+      }, true);
+    }
+
     function render() {
       applyAetherRegen();
       const week = currentWeek();
@@ -3104,6 +3615,7 @@
       document.getElementById("weeklyTranscend").textContent = comma(week.weeklyTranscend);
       document.getElementById("aetherRegenNote").textContent = "";
       renderProfit();
+      renderEfficiencyTable();
       renderMoneyPresets();
       renderExtraProfit();
       renderExpense();
@@ -3124,7 +3636,15 @@
       card.querySelector(".aether-value").textContent = `${comma(character.aether)} / ${comma(character.maxAether || 840)}`;
       card.querySelector(".bonus-value").textContent = `(+${comma(character.bonusAether)})`;
       const profitValue = card.querySelector(".character-profit-value");
-      if (profitValue) profitValue.textContent = `${comma(getCharacterWeeklyProfit(character))} 키나`;
+      if (profitValue) {
+        const charReward = getCharacterWeeklyProfitReward(character);
+        profitValue.innerHTML = `
+          <span class="character-profit-lines">
+            <span>일반 ${comma(charReward.normal)}</span>
+            <span>각인 ${comma(charReward.bound)}</span>
+            <b>총합 ${comma(rewardTotal(charReward))}</b>
+          </span>`;
+      }
 
       card.querySelector(".edit-power").onclick = () => editPower(character.id);
       card.querySelector(".edit-energy").onclick = () => editCharacterEnergy(character.id);
@@ -3255,8 +3775,8 @@
     }
 
     function addCharacter() {
-      if (getCharacters().length >= 6) {
-        alert("캐릭터는 최대 6개까지 등록할 수 있습니다.");
+      if (getCharacters().length >= 7) {
+        alert("캐릭터는 최대 7개까지 등록할 수 있습니다.");
         return;
       }
       const nickname = prompt("추가할 캐릭터 닉네임을 입력하세요.");
@@ -3364,13 +3884,14 @@
       render();
     }
 
-    function spendAether(character) {
-      if ((Number(character.aether || 0) + Number(character.bonusAether || 0)) < 80) {
-        alert("오드 에너지가 부족합니다.");
+    function spendAether(character, amount = 80) {
+      const required = Number(amount || 80);
+      if ((Number(character.aether || 0) + Number(character.bonusAether || 0)) < required) {
+        alert(`오드 에너지가 부족합니다. 필요 오드: ${required}`);
         return null;
       }
 
-      let cost = 80;
+      let cost = required;
       const spent = { aether: 0, bonusAether: 0 };
       if (character.aether >= cost) {
         character.aether -= cost;
@@ -3395,35 +3916,48 @@
       const character = getCharacters().find(c => c.id === characterId);
       const task = character.tasks.find(t => t.id === taskId);
       const baseName = getTaskBaseName(task.name);
-
-      const spent = spendAether(character);
-      if (!spent) return;
       if (!task.claimHistory) task.claimHistory = [];
 
+      let reward = null;
+      let profitKey = "";
+      let recordType = "";
+      let countedWeekly = false;
+
       if (baseName === "[원정]") {
-        const countedWeekly = week.weeklyExpedition < 84;
-        if (countedWeekly) week.weeklyExpedition += 1;
+        countedWeekly = week.weeklyExpedition < 84;
         const dungeon = DUNGEONS["[원정]"].find(d => d.name === task.selectedDungeon) || DUNGEONS["[원정]"][0];
-        const profitKey = `원정 ${dungeon.name}`;
-        addProfit(profitKey, dungeon.reward);
-        task.claimHistory.push({ type: "expedition", profitKey, reward: dungeon.reward, spent, countedWeekly });
+        reward = normalizeReward(dungeon.reward);
+        profitKey = `원정 ${dungeon.name}`;
+        recordType = "expedition";
       }
 
       if (baseName === "[초월]") {
-        const countedWeekly = week.weeklyTranscend < 56;
-        if (countedWeekly) week.weeklyTranscend += 1;
+        countedWeekly = week.weeklyTranscend < 56;
         const dungeon = DUNGEONS["[초월]"].find(d => d.name === task.selectedDungeon) || DUNGEONS["[초월]"][0];
-        const profitKey = `초월 ${dungeon.name}`;
-        addProfit(profitKey, dungeon.reward);
-        task.claimHistory.push({ type: "transcend", profitKey, reward: dungeon.reward, spent, countedWeekly });
+        reward = normalizeReward(dungeon.reward);
+        profitKey = `초월 ${dungeon.name}`;
+        recordType = "transcend";
       }
 
       if (SANCTUM_REWARDS[baseName] !== undefined) {
-        const profitKey = baseName;
-        const reward = SANCTUM_REWARDS[baseName];
-        addProfit(profitKey, reward);
-        task.claimHistory.push({ type: "sanctum", profitKey, reward, spent });
+        if ((task.claimHistory || []).length >= 1) {
+          alert("성역 보상은 주간 1회만 기록합니다.");
+          return;
+        }
+        reward = normalizeReward(SANCTUM_REWARDS[baseName]);
+        profitKey = baseName;
+        recordType = "sanctum";
       }
+
+      if (!reward) return;
+      const spent = spendAether(character, reward.aetherCost);
+      if (!spent) return;
+
+      if (recordType === "expedition" && countedWeekly) week.weeklyExpedition += 1;
+      if (recordType === "transcend" && countedWeekly) week.weeklyTranscend += 1;
+
+      addProfit(profitKey, reward);
+      task.claimHistory.push({ type: recordType, profitKey, reward, spent, countedWeekly });
 
       archiveWeek(state.currentWeekKey);
       save();
@@ -3450,26 +3984,86 @@
       render();
     }
 
+    function getRewardSpecByProfitKey(key) {
+      if (key.startsWith("원정 ")) {
+        const name = key.replace("원정 ", "");
+        return DUNGEONS["[원정]"].find(d => d.name === name)?.reward || null;
+      }
+      if (key.startsWith("초월 ")) {
+        const name = key.replace("초월 ", "");
+        return DUNGEONS["[초월]"].find(d => d.name === name)?.reward || null;
+      }
+      if (SANCTUM_REWARDS[key]) return SANCTUM_REWARDS[key];
+      return null;
+    }
+
+    function getEfficiencyPer10(reward) {
+      const row = normalizeReward(reward);
+      if (!row.aetherCost) return 0;
+      return Math.round((row.normal + row.bound) / row.aetherCost * 10);
+    }
+
+    function getEfficiencyRows() {
+      const rows = [];
+      Object.entries(DUNGEONS).forEach(([category, list]) => {
+        list.forEach(item => rows.push({ name: `${category} ${item.name}`, reward: normalizeReward(item.reward) }));
+      });
+      Object.entries(SANCTUM_REWARDS).forEach(([name, reward]) => rows.push({ name, reward: normalizeReward(reward) }));
+      return rows.sort((a, b) => getEfficiencyPer10(b.reward) - getEfficiencyPer10(a.reward));
+    }
+
+    function renderEfficiencyTable() {
+      const box = document.getElementById("efficiencyTable");
+      if (!box) return;
+      box.innerHTML = `
+        <div class="efficiency-table-row header">
+          <span>콘텐츠</span><b>오드</b><b>일반</b><b>각인</b><b>총합</b><b>10오드당</b>
+        </div>`;
+      getEfficiencyRows().forEach(row => {
+        const div = document.createElement("div");
+        div.className = "efficiency-table-row";
+        div.innerHTML = `
+          <span>${row.name}</span>
+          <b>${comma(row.reward.aetherCost)}</b>
+          <b>${comma(row.reward.normal)}</b>
+          <b>${comma(row.reward.bound)}</b>
+          <b>${comma(rewardTotal(row.reward))}</b>
+          <b>${comma(getEfficiencyPer10(row.reward))}</b>`;
+        box.appendChild(div);
+      });
+    }
+
     function renderProfitBox(el, rows) {
       const week = currentWeek();
       const counts = week.profitCount || {};
       el.innerHTML = "";
       rows.forEach(([key, value]) => {
+        const reward = normalizeReward(value);
         const row = document.createElement("div");
         row.className = "profit-row";
-        row.innerHTML = `<span>${key} · ${comma(counts[key] || 0)}판</span><b>${comma(value)}</b>`;
+        row.innerHTML = `
+          <span>${key} · ${comma(counts[key] || 0)}판</span>
+          <b>${comma(rewardTotal(reward))}</b>`;
         el.appendChild(row);
       });
       if (!el.innerHTML) el.innerHTML = `<div class="profit-row"><span>수익 없음 · 0판</span><b>0</b></div>`;
     }
-
     function renderProfit() {
       const week = currentWeek();
       const entries = Object.entries(week.profit || {});
       renderProfitBox(document.getElementById("expeditionProfit"), entries.filter(([key]) => key.startsWith("원정")));
       renderProfitBox(document.getElementById("transcendProfit"), entries.filter(([key]) => key.startsWith("초월")));
       renderProfitBox(document.getElementById("sanctumProfit"), entries.filter(([key]) => key.startsWith("[성역]")));
-      document.getElementById("totalProfit").textContent = comma(getTotalProfit(week));
+      const totals = getProfitTotals(week);
+      const totalBox = document.querySelector(".total-profit");
+      if (totalBox) {
+        totalBox.innerHTML = `
+          <div class="profit-summary-grid">
+            <div class="profit-summary-card"><span>거래소 사용 가능 키나</span><b>${comma(totals.normal)}</b></div>
+            <div class="profit-summary-card"><span>각인 키나</span><b>${comma(totals.bound)}</b></div>
+            <div class="profit-summary-card total-card"><span>총합</span><b>${comma(totals.total)}</b></div>
+          </div>`;
+      }
     }
 
     function addExtraProfit() {
@@ -3620,7 +4214,7 @@
         const name = document.createElement("span");
         name.textContent = item.name;
         const amount = document.createElement("b");
-        amount.textContent = `${comma(item.amount)} 키나`;
+        amount.textContent = `${isBoundKinaName(item.name) ? "각인 " : "일반 "}${comma(item.amount)} 키나`;
         const del = document.createElement("button");
         del.className = "small-btn";
         del.textContent = "삭제";
@@ -3631,31 +4225,66 @@
         box.appendChild(row);
       });
     }
-
     function addHistorySection(container, title, rows, options = {}) {
       const subtitle = document.createElement("div");
       subtitle.className = "history-subtitle";
       subtitle.textContent = title;
       container.appendChild(subtitle);
 
+      const table = document.createElement("div");
+      table.className = "history-breakdown-table";
+      table.innerHTML = `<div class="history-breakdown-row header"><span>항목</span><b>일반</b><b>각인</b><b>총합</b></div>`;
+
       if (!rows.length) {
-        const empty = document.createElement("div");
-        empty.className = "history-line";
-        empty.innerHTML = `<span>기록 없음</span><b>0 키나</b>`;
-        container.appendChild(empty);
+        table.innerHTML += `<div class="history-breakdown-row"><span>기록 없음</span><b>0</b><b>0</b><b class="history-total">0</b></div>`;
+        container.appendChild(table);
         return;
       }
 
       rows.forEach(([name, amount, count]) => {
-        const line = document.createElement("div");
-        line.className = "history-line";
+        let reward;
+        if (typeof amount === "object") {
+          reward = normalizeReward(amount);
+        } else if (options.negative) {
+          reward = getMoneyRowReward({ name, amount }, { expense: true });
+        } else {
+          reward = getMoneyRowReward({ name, amount });
+        }
         const countText = typeof count === "number" ? ` · ${comma(count)}판` : "";
-        const prefix = options.negative ? "-" : "";
-        line.innerHTML = `<span>${name}${countText}</span><b>${prefix}${comma(amount)} 키나</b>`;
-        container.appendChild(line);
+        const total = reward.normal + reward.bound;
+        table.innerHTML += `
+          <div class="history-breakdown-row">
+            <span>${name}${countText}</span>
+            <b>${comma(reward.normal)}</b>
+            <b>${comma(reward.bound)}</b>
+            <b class="history-total">${comma(total)}</b>
+          </div>`;
       });
+      container.appendChild(table);
     }
+    function getDetailTotals(detail) {
+      const base = Object.values(detail?.profit || {}).reduce((sum, value) => {
+        const reward = normalizeReward(value);
+        sum.normal += reward.normal;
+        sum.bound += reward.bound;
+        return sum;
+      }, { normal: 0, bound: 0 });
 
+      (detail?.extraProfit || []).forEach(item => {
+        const reward = getMoneyRowReward(item);
+        base.normal += reward.normal;
+        base.bound += reward.bound;
+      });
+
+      (detail?.expense || []).forEach(item => {
+        base.normal += getMoneyRowReward(item, { expense: true }).normal;
+      });
+
+      base.normal = Math.max(0, base.normal);
+      base.bound = Math.max(0, base.bound);
+      base.total = base.normal + base.bound;
+      return base;
+    }
     function renderHistory() {
       archiveWeek(state.currentWeekKey);
       const box = document.getElementById("profitHistory");
@@ -3665,13 +4294,19 @@
         box.innerHTML = `<div class="history-row"><span>저장된 주차 수익 없음</span><b>0 키나</b></div>`;
         return;
       }
+
+      const table = document.createElement("div");
+      table.className = "history-table";
+      table.innerHTML = `<div class="history-table-row header"><span>주차</span><b>일반</b><b>각인</b><b>총합</b></div>`;
+
       rows.forEach(item => {
         const detail = item.detail || { profit: {}, profitCount: {}, extraProfit: [], expense: [] };
+        const totals = getDetailTotals(detail);
         const wrapper = document.createElement("details");
         wrapper.className = "history-detail";
 
         const summary = document.createElement("summary");
-        summary.innerHTML = `<div class="history-row"><span>${item.eraLabel || getEraWeekLabelFromKey(item.key)}</span><b>${comma(item.total)} 키나</b></div>`;
+        summary.innerHTML = `<div class="history-table-row"><span>${item.eraLabel || getEraWeekLabelFromKey(item.key)}</span><b>${comma(totals.normal)}</b><b>${comma(totals.bound)}</b><b class="history-total">${comma(totals.total)}</b></div>`;
         wrapper.appendChild(summary);
 
         const breakdown = document.createElement("div");
@@ -3686,8 +4321,9 @@
         addHistorySection(breakdown, "지출", (detail.expense || []).map(row => [row.name, row.amount]), { negative: true });
 
         wrapper.appendChild(breakdown);
-        box.appendChild(wrapper);
+        table.appendChild(wrapper);
       });
+      box.appendChild(table);
     }
 
 
@@ -3924,6 +4560,40 @@
       return formatKoreanDate(date);
     }
 
+    function createCharacterStigmaPanel(character, remaining) {
+      const panel = document.createElement("div");
+      panel.className = "stigma-weekly-panel";
+      const abyssAvg = getAverageAbyssCount();
+      const abyssWeek = getWeeklyAbyssIncome();
+      const score = getCharacterAwakeningScore(character);
+      const awakeningShards = getAwakeningRewardShards(score);
+      const awakeningIncome = getAwakeningStigmaIncome(character);
+      const total = getWeeklyStigmaIncome(character);
+      const weeks = total > 0 ? Math.ceil(remaining / total) : null;
+      const estimateDate = weeks === null ? "-" : getStigmaEstimateDateText(weeks);
+      panel.innerHTML = `
+        <div class="stigma-weekly-title">주간 스티그마 예상</div>
+        <div class="stigma-weekly-row"><span>회랑 평균</span><b>${abyssAvg.toFixed(2)}개/회</b></div>
+        <div class="stigma-weekly-row"><span>회랑 주간</span><b>${abyssWeek.toFixed(2)}개</b></div>
+        <div class="stigma-weekly-row"><span>각성전 보상</span><b>${awakeningShards}개 × 3</b></div>
+        <div class="stigma-weekly-row"><span>각성전 환산</span><b>${awakeningIncome.toFixed(3)}개</b></div>
+        <div class="stigma-weekly-row total"><span>총 주간 예상</span><b>${total.toFixed(3)}개</b></div>
+        <div class="stigma-weekly-row"><span>완료 예상</span><b>${weeks === null ? "회랑 데이터 필요" : `약 ${weeks}주`}</b></div>
+        <div class="stigma-weekly-row"><span>예상 일자</span><b>${estimateDate}</b></div>
+        <select class="awakening-select" aria-label="각성전 점수 선택">
+          <option value="0">각성전 10000 미만</option>
+          ${AWAKENING_SCORE_TABLE.slice().reverse().map(row => `<option value="${row.score}" ${Number(score || 0) === row.score ? "selected" : ""}>${comma(row.score)}점 이상 · ${row.shards}개</option>`).join("")}
+        </select>
+      `;
+      const select = panel.querySelector(".awakening-select");
+      select.onchange = () => {
+        character.awakeningScore = Number(select.value || 0);
+        save();
+        renderGrowth();
+      };
+      return panel;
+    }
+
     function renderGrowth() {
       ensureGrowthState();
       const box = document.getElementById("growthList");
@@ -3931,7 +4601,10 @@
       box.innerHTML = "";
       const characters = getSortedCharacters();
       if (!characters.length) {
-        box.innerHTML = `<div class="growth-empty">캐릭터를 추가하면 성장 정보를 관리할 수 있습니다.</div>`;
+        const empty = document.createElement("div");
+        empty.className = "growth-empty";
+        empty.textContent = "캐릭터를 추가하면 성장 정보를 관리할 수 있습니다.";
+        box.appendChild(empty);
         return;
       }
       characters.forEach(character => {
@@ -3943,7 +4616,7 @@
         const history = character.powerHistory || [];
         const avgGain = getWeeklyAverageGrowth(history);
         const remaining = getRemainingStigmaShards(character);
-        const weeklyIncome = getWeeklyStigmaIncome();
+        const weeklyIncome = getWeeklyStigmaIncome(character);
         const weeks = weeklyIncome > 0 ? Math.ceil(remaining / weeklyIncome) : null;
         const estimateDate = weeks === null ? "-" : getStigmaEstimateDateText(weeks);
         card.innerHTML = `
@@ -3969,12 +4642,16 @@
               </div>
               <div class="stigma-list"></div>
               <div class="stigma-estimate">완료 예상: ${weeks === null ? "회랑 데이터 필요" : `약 ${weeks}주`}<br>완료 예상 일자: ${estimateDate}<br>남은 샤드 ${comma(remaining)}개</div>
+              <div class="stigma-weekly-mount"></div>
             </div>
           </div>
         `;
+        const weeklyMount = card.querySelector(".stigma-weekly-mount");
+        if (weeklyMount) weeklyMount.appendChild(createCharacterStigmaPanel(character, remaining));
         renderPowerHistoryRows(card.querySelector(".growth-history-rows"), character.powerHistory || []);
         const list = card.querySelector(".stigma-list");
         (character.stigmas || []).forEach(stigma => list.appendChild(createStigmaRow(character, stigma)));
+        enableVerticalDragScrollElement(list);
         const addStigmaButton = card.querySelector(".add-stigma");
         addStigmaButton.disabled = character.stigmas.length >= MAX_STIGMA_COUNT;
         addStigmaButton.onclick = () => {
