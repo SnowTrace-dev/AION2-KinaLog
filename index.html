@@ -2796,7 +2796,7 @@
     const DUNGEON_TASKS = ["[원정]", "[초월]"];
 
     function makeReward(normal = 0, bound = 0, aetherCost = 80) {
-      return { normal: Number(normal || 0), bound: Number(bound || 0), aetherCost: Number(aetherCost || 80) };
+      return { normal: Number(normal || 0), bound: Number(bound || 0), aetherCost: Number(aetherCost ?? 80) };
     }
 
     const DUNGEONS = {
@@ -3197,9 +3197,15 @@
     }
 
     function normalizeReward(reward) {
-      if (typeof reward === "number") return { normal: Number(reward || 0), bound: 0, aetherCost: 80 };
-      if (!reward || typeof reward !== "object") return { normal: 0, bound: 0, aetherCost: 80 };
-      return { normal: Number(reward.normal || 0), bound: Number(reward.bound || 0), aetherCost: Number(reward.aetherCost || 80) };
+      if (typeof reward === "number") {
+        const normal = Number(reward || 0);
+        return { normal, bound: 0, aetherCost: normal > 0 ? 80 : 0 };
+      }
+      if (!reward || typeof reward !== "object") return { normal: 0, bound: 0, aetherCost: 0 };
+      const normal = Number(reward.normal || 0);
+      const bound = Number(reward.bound || 0);
+      const hasAetherCost = Object.prototype.hasOwnProperty.call(reward, "aetherCost");
+      return { normal, bound, aetherCost: hasAetherCost ? Number(reward.aetherCost || 0) : (normal + bound > 0 ? 80 : 0) };
     }
 
     function isBoundKinaName(name) {
@@ -3223,13 +3229,15 @@
     function addRewards(a, b) {
       const left = normalizeReward(a);
       const right = normalizeReward(b);
-      return { normal: left.normal + right.normal, bound: left.bound + right.bound, aetherCost: right.aetherCost || left.aetherCost || 80 };
+      return { normal: left.normal + right.normal, bound: left.bound + right.bound, aetherCost: Number(right.aetherCost || left.aetherCost || 0) };
     }
 
     function subtractRewards(a, b) {
       const left = normalizeReward(a);
       const right = normalizeReward(b);
-      return { normal: Math.max(0, left.normal - right.normal), bound: Math.max(0, left.bound - right.bound), aetherCost: left.aetherCost || right.aetherCost || 80 };
+      const normal = Math.max(0, left.normal - right.normal);
+      const bound = Math.max(0, left.bound - right.bound);
+      return { normal, bound, aetherCost: normal + bound > 0 ? Number(left.aetherCost || right.aetherCost || 0) : 0 };
     }
 
     function getProfitTotals(week = currentWeek()) {
@@ -3262,7 +3270,7 @@
     function getCharacterWeeklyProfitReward(character) {
       return (character.tasks || []).reduce((sum, task) => {
         return (task.claimHistory || []).reduce((taskSum, record) => addRewards(taskSum, record.reward || 0), sum);
-      }, { normal: 0, bound: 0, aetherCost: 80 });
+      }, { normal: 0, bound: 0, aetherCost: 0 });
     }
 
     function getCharacterWeeklyProfit(character) {
@@ -3958,6 +3966,7 @@
 
       addProfit(profitKey, reward);
       task.claimHistory.push({ type: recordType, profitKey, reward, spent, countedWeekly });
+      if (recordType === "sanctum") task.done = true;
 
       archiveWeek(state.currentWeekKey);
       save();
@@ -3979,6 +3988,7 @@
       }
       refundAether(character, record.spent || {});
       removeProfit(record.profitKey, record.reward || 0);
+      if (record.type === "sanctum") task.done = false;
       archiveWeek(state.currentWeekKey);
       save();
       render();
