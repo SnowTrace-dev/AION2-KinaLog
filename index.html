@@ -3199,13 +3199,13 @@
     function normalizeReward(reward) {
       if (typeof reward === "number") {
         const normal = Number(reward || 0);
-        return { normal, bound: 0, aetherCost: normal > 0 ? 80 : 0 };
+        return { normal, bound: 0, aetherCost: 0 };
       }
       if (!reward || typeof reward !== "object") return { normal: 0, bound: 0, aetherCost: 0 };
       const normal = Number(reward.normal || 0);
       const bound = Number(reward.bound || 0);
       const hasAetherCost = Object.prototype.hasOwnProperty.call(reward, "aetherCost");
-      return { normal, bound, aetherCost: hasAetherCost ? Number(reward.aetherCost || 0) : (normal + bound > 0 ? 80 : 0) };
+      return { normal, bound, aetherCost: hasAetherCost ? Number(reward.aetherCost ?? 0) : 0 };
     }
 
     function isBoundKinaName(name) {
@@ -3893,7 +3893,8 @@
     }
 
     function spendAether(character, amount = 80) {
-      const required = Number(amount || 80);
+      const required = Number(amount ?? 80);
+      if (required <= 0) return { aether: 0, bonusAether: 0 };
       if ((Number(character.aether || 0) + Number(character.bonusAether || 0)) < required) {
         alert(`오드 에너지가 부족합니다. 필요 오드: ${required}`);
         return null;
@@ -3915,7 +3916,8 @@
     }
 
     function refundAether(character, spent) {
-      character.aether = Number(character.aether || 0) + Number(spent.aether || 0);
+      const maxAether = Number(character.maxAether || 840);
+      character.aether = Math.min(maxAether, Number(character.aether || 0) + Number(spent.aether || 0));
       character.bonusAether = Number(character.bonusAether || 0) + Number(spent.bonusAether || 0);
     }
 
